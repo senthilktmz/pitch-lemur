@@ -24,3 +24,6 @@
 | 12             | 12              | 19     | G             | Perfect 12th (P5 an octave higher) |
 | 13♭            | 12♯             | 20     | G♯ / A♭       | Minor 13th (♭13) |
 | 13             | 13              | 21     | A             | Major 13th (13) |
+
+TODO:
+fix scratchpad mini keyboard
