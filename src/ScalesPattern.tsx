@@ -100,6 +100,7 @@ const ScalesPattern: React.FC<ScalesPatternProps> = ({ zoom = 100, patterns, sca
   const [keyboardViewJson, setKeyboardViewJson] = useState<string>("");
   const audioContextRef = useRef<AudioContext | null>(null);
   const oscillatorsRef = useRef<OscillatorNode[]>([]);
+  const [lastPlayedTable, setLastPlayedTable] = useState<{ note: string; freq: number }[] | null>(null);
 
   const currentPattern = CHORDS_PATTERNS.find((p) => p.name === selectedPattern);
 
@@ -121,6 +122,9 @@ const ScalesPattern: React.FC<ScalesPatternProps> = ({ zoom = 100, patterns, sca
   const playScale = async () => {
     if (isPlaying) return;
     const notes = getPatternNotes();
+    // Build and show a persistent table of notes and their frequencies
+    const table = notes.map(n => ({ note: n, freq: getFrequency(n) }));
+    setLastPlayedTable(table);
     setIsPlaying(true);
     for (let note of notes) {
       const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -181,27 +185,23 @@ const ScalesPattern: React.FC<ScalesPatternProps> = ({ zoom = 100, patterns, sca
     setSliderOffsetX(firstIdx * KEY_WIDTH);
   };
 
-  // Map chord degrees to notes, placing 9/11/13 in the next octave and avoiding duplicate highlights
+  // Map degrees to notes with correct octaves using absolute semitone offsets from the root
   const getPatternNotes = () => {
     if (!currentPattern || rootIndex === null) return [];
-    const baseOctave = 4;
-    const nextOctave = baseOctave + 1;
     const degreeToSemitone: Record<string, number> = {
       "1": 0, "b2": 1, "2": 2, "#2": 3, "b3": 3, "3": 4, "4": 5, "#4": 6, "b5": 6, "5": 7, "#5": 8, "b6": 8, "6": 9, "bb7": 9, "b7": 10, "7": 11,
-      "b9": 1, "9": 2, "#9": 3, "11": 5, "#11": 6, "b13": 8, "13": 9
+      // Move extensions to next octave explicitly
+      "b9": 1 + 12, "9": 2 + 12, "#9": 3 + 12, "11": 5 + 12, "#11": 6 + 12, "b13": 8 + 12, "13": 9 + 12
     };
-    const notesWithDegrees = (SCALES_PATTERNS_ARRAY.find(([name]) => name === selectedPattern) || []).slice(1) as string[];
+    const degrees = (SCALES_PATTERNS_ARRAY.find(([name]) => name === selectedPattern) || []).slice(1) as string[];
     const seenNotes = new Set<string>();
-    return notesWithDegrees.map((degree) => {
-      let semitone = degreeToSemitone[degree];
+    return degrees.map((degree) => {
+      const semitone = degreeToSemitone[degree];
       if (semitone === undefined) return null;
-      let noteIdx = (rootIndex + semitone) % 12;
-      let note = ROOT_NOTES[noteIdx];
-      let octave = baseOctave;
-      // If degree is 9, 11, 13 or their alterations, use next octave
-      if (["b9", "9", "#9", "11", "#11", "b13", "13"].includes(degree)) {
-        octave = nextOctave;
-      }
+      const abs = rootIndex + semitone;
+      const noteIdx = abs % 12;
+      const note = ROOT_NOTES[noteIdx];
+      const octave = 4 + Math.floor(abs / 12);
       const noteWithOctave = note + octave;
       if (!seenNotes.has(noteWithOctave)) {
         seenNotes.add(noteWithOctave);
@@ -480,6 +480,29 @@ const ScalesPattern: React.FC<ScalesPatternProps> = ({ zoom = 100, patterns, sca
             </button>
           </div>
         </div>
+        {/* Persistent table of last played notes and frequencies */}
+        {(lastPlayedTable?.length ?? 0) > 0 && (
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: 16 }}>
+            <table style={{ borderCollapse: 'collapse', minWidth: 360 }}>
+              <thead>
+                <tr>
+                  <th style={{ textAlign: 'left', borderBottom: '1px solid #ccc', padding: '6px 8px' }}>#</th>
+                  <th style={{ textAlign: 'left', borderBottom: '1px solid #ccc', padding: '6px 8px' }}>Note</th>
+                  <th style={{ textAlign: 'right', borderBottom: '1px solid #ccc', padding: '6px 8px' }}>Frequency (Hz)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {lastPlayedTable!.map((row, i) => (
+                  <tr key={`${i}-${row.note}`}>
+                    <td style={{ padding: '6px 8px' }}>{i + 1}</td>
+                    <td style={{ padding: '6px 8px' }}>{row.note}</td>
+                    <td style={{ padding: '6px 8px', textAlign: 'right' }}>{row.freq.toFixed(2)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
         {/* Show JSON of keys about to be played as a chord */}
         {(() => {
           // Only show if a chord is selected
