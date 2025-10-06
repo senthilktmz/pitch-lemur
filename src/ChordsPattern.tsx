@@ -90,6 +90,7 @@ const ChordsPattern: React.FC<ChordsPatternProps> = ({ zoom = 100, addScratchPad
   const [keyboardViewJson, setKeyboardViewJson] = useState<string>("");
   const audioContextRef = useRef<AudioContext | null>(null);
   const oscillatorsRef = useRef<OscillatorNode[]>([]);
+  const [lastPlayedTable, setLastPlayedTable] = useState<{ note: string; freq: number }[] | null>(null);
 
   const currentPattern = CHORDS_PATTERNS.find((p) => p.name === selectedPattern);
 
@@ -311,6 +312,9 @@ const ChordsPattern: React.FC<ChordsPatternProps> = ({ zoom = 100, addScratchPad
         forward_padding
       };
       setKeyboardViewJson(JSON.stringify(keyboardViewObj, null, 2));
+      // Update the persistent table from the key_sequence whenever the mini keyboard is shown
+      const playedNotes: string[] = key_sequence.filter((n: string) => !n.startsWith('0'));
+      setLastPlayedTable(playedNotes.map(n => ({ note: n, freq: getFrequency(n) })));
     }
   }, [rootIndex, selectedPattern]);
 
@@ -480,6 +484,29 @@ const ChordsPattern: React.FC<ChordsPatternProps> = ({ zoom = 100, addScratchPad
             </button>
           </div>
         </div>
+        {/* Persistent table of last played chord notes and frequencies */}
+        {(lastPlayedTable?.length ?? 0) > 0 && (
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: 16, width: '100%' }}>
+            <table style={{ borderCollapse: 'collapse', minWidth: 360 }}>
+              <thead>
+                <tr>
+                  <th style={{ textAlign: 'left', borderBottom: '1px solid #ccc', padding: '6px 8px' }}>#</th>
+                  <th style={{ textAlign: 'left', borderBottom: '1px solid #ccc', padding: '6px 8px' }}>Note</th>
+                  <th style={{ textAlign: 'right', borderBottom: '1px solid #ccc', padding: '6px 8px' }}>Frequency (Hz)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {lastPlayedTable!.map((row, i) => (
+                  <tr key={`${i}-${row.note}`}>
+                    <td style={{ padding: '6px 8px' }}>{i + 1}</td>
+                    <td style={{ padding: '6px 8px' }}>{row.note}</td>
+                    <td style={{ padding: '6px 8px', textAlign: 'right' }}>{row.freq.toFixed(2)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
       {/* Show JSON of keys about to be played as a chord */}
       {(() => {
