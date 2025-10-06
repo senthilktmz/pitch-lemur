@@ -115,8 +115,6 @@ const CarnaticScalesPattern: React.FC<CarnaticScalesPatternProps> = ({ zoom = 10
   const playScale = async () => {
     if (isPlaying) return;
     const notes = getPatternNotes();
-    const table = notes.map(n => ({ note: n, freq: getFrequency(n) }));
-    setLastPlayedTable(table);
     setIsPlaying(true);
     for (let note of notes) {
       const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -305,6 +303,9 @@ const CarnaticScalesPattern: React.FC<CarnaticScalesPatternProps> = ({ zoom = 10
         forward_padding
       };
       setKeyboardViewJson(JSON.stringify(keyboardViewObj, null, 2));
+      // Also update the persistent table from the key_sequence whenever the mini keyboard is shown
+      const playedNotes: string[] = key_sequence.filter((n: string) => !n.startsWith('0'));
+      setLastPlayedTable(playedNotes.map(n => ({ note: n, freq: getFrequency(n) })));
     }
   }, [rootIndex, selectedPattern]);
 
