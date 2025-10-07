@@ -93,19 +93,19 @@ const ScratchPad: React.FC<ScratchPadProps> = ({ items, removeItem }) => {
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
+          gridTemplateColumns: `repeat(auto-fit, minmax(${cardW}px, 1fr))`,
           gap: '12px',
           marginTop: 32,
           justifyItems: 'center',
-          alignItems: 'center',
+          alignItems: 'start',
         }}
       >
         {items.map((item, idx) => (
           <div
             key={item.timestamp + '-' + idx}
             style={{
-              width: cardW,
-              height: cardH,
+              width: '100%',
+              minHeight: cardH,
               background: '#f5f8fa',
               border: '2px solid #1976d2',
               borderRadius: 12,
@@ -117,9 +117,10 @@ const ScratchPad: React.FC<ScratchPadProps> = ({ items, removeItem }) => {
               cursor: 'pointer',
               userSelect: 'none',
               position: 'relative',
-              margin: 'auto',
+              margin: 0,
               paddingTop: 2,
-              overflow: 'visible'
+              overflow: 'hidden',
+              boxSizing: 'border-box'
             }}
             onClick={() => playChord(item.noteFrequencies)}
           >
