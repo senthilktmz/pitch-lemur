@@ -219,12 +219,19 @@ const ChordsPattern: React.FC<ChordsPatternProps> = ({ zoom = 100, addScratchPad
     };
     const notes = getPatternNotes();
     const noteFrequencies = notes.map(n => NOTE_FREQS[n.slice(0, -1)] || 523.25);
+    // Extract keyboard view arrays to reproduce the exact mini keyboard in Scratch Pad
+    let kv: any = null;
+    try { kv = keyboardViewJson ? JSON.parse(keyboardViewJson) : null; } catch {}
     const chordInfo = {
       root: rootIndex !== null ? ROOT_NOTES[rootIndex] : undefined,
       type: currentPattern.name,
       notes,
       noteFrequencies,
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      // Pass through the exact keyboard view to render the same SVG in Scratch Pad
+      keySequence: kv?.key_sequence || [],
+      backwardPadding: kv?.backward_padding || [],
+      forwardPadding: kv?.forward_padding || []
     };
     if (typeof addScratchPadItem === 'function') {
       addScratchPadItem(chordInfo);
