@@ -35,10 +35,10 @@ function App() {
     if (activeTab === "chords") content = <ChordsMulti addScratchPadItem={addScratchPadItem}/>;
     else if (activeTab === "scales") content =
         <ScalesMulti patterns={SCALES_PATTERNS_ARRAY} scalesPatternType={activeTab}
-                     ragasPatterns={[]}/>;
+                     ragasPatterns={[]} addScratchPadItem={addScratchPadItem}/>;
     else if (activeTab === "carnatic_scales") content =
         <ScalesMulti patterns={RAGAS_PATTERNS_ARRAY} scalesPatternType={activeTab}
-                     ragasPatterns={RAGAS_PATTERNS}/>;
+                     ragasPatterns={RAGAS_PATTERNS} addScratchPadItem={addScratchPadItem}/>;
     else if (activeTab === "intervals") content = <Intervals/>;
     else if (activeTab === "scratchpad") content = <ScratchPad items={scratchPadItems} removeItem={removeScratchPadItem}/>;
 

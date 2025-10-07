@@ -35,6 +35,8 @@ interface ScratchPadItem {
   keySequence?: string[];
   backwardPadding?: string[];
   forwardPadding?: string[];
+  // New: indicates how to play when clicked (chord or scale)
+  playMode?: 'chord' | 'scale';
 }
 
 interface ScratchPadProps {
@@ -86,6 +88,25 @@ const ScratchPad: React.FC<ScratchPadProps> = ({ items, removeItem }) => {
     }, 1000);
   };
 
+  const playScale = async (noteFrequencies: number[]) => {
+    for (let f of noteFrequencies) {
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.18, ctx.currentTime + 0.08);
+      gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.5);
+      gain.connect(ctx.destination);
+      const osc = ctx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.value = f;
+      osc.connect(gain);
+      osc.start();
+      await new Promise(res => setTimeout(res, 500));
+      try { osc.stop(); } catch {}
+      try { await ctx.close(); } catch {}
+    }
+  };
+
   return (
     <div style={{ padding: 40 }}>
       {/* Scratch Pad zoom control */}
@@ -135,7 +156,7 @@ const ScratchPad: React.FC<ScratchPadProps> = ({ items, removeItem }) => {
               overflow: 'hidden',
               boxSizing: 'border-box'
             }}
-            onClick={() => playChord(item.noteFrequencies)}
+            onClick={() => (item.playMode === 'scale' ? playScale(item.noteFrequencies) : playChord(item.noteFrequencies))}
           >
             {/* Render the same full mini keyboard as in Chords view (no cropping), scaled to fit */}
             {item.keySequence && item.keySequence.length > 0 ? (() => {

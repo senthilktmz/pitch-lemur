@@ -217,12 +217,21 @@ const ScalesPattern: React.FC<ScalesPatternProps> = ({ zoom = 100, patterns, sca
     };
     const notes = getPatternNotes();
     const noteFrequencies = notes.map(n => NOTE_FREQS[n.slice(0, -1)] || 523.25);
+    // Extract keyboard view arrays to reproduce the same mini keyboard in Scratch Pad
+    let kv: any = null;
+    try { kv = keyboardViewJson ? JSON.parse(keyboardViewJson) : null; } catch {}
     const chordInfo = {
       root: rootIndex !== null ? ROOT_NOTES[rootIndex] : undefined,
       type: currentPattern.name,
       notes,
       noteFrequencies,
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      // Scratch pad rendering
+      keySequence: kv?.key_sequence || [],
+      backwardPadding: kv?.backward_padding || [],
+      forwardPadding: kv?.forward_padding || [],
+      // Indicate playback style for Scratch Pad
+      playMode: 'scale' as const
     };
     if (typeof addScratchPadItem === 'function') {
       addScratchPadItem(chordInfo);
