@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import MiniKeyboard from "./MiniKeyboard";
 import KeyboardViewSVG from "./KeyboardViewSVG";
 
@@ -43,8 +43,21 @@ interface ScratchPadProps {
 }
 
 const ScratchPad: React.FC<ScratchPadProps> = ({ items, removeItem }) => {
-  // Zoom for preview thumbnails (1 = 100%)
-  const [zoom, setZoom] = useState(1.25);
+  // Zoom for preview thumbnails (1 = 100%) - persisted across sessions
+  const [zoom, setZoom] = useState<number>(() => {
+    try {
+      const saved = localStorage.getItem('scratchpad_zoom');
+      if (!saved) return 1.25;
+      const z = Number(saved);
+      // clamp to slider bounds
+      return isFinite(z) ? Math.min(5.0, Math.max(0.75, z)) : 1.25;
+    } catch {
+      return 1.25;
+    }
+  });
+  useEffect(() => {
+    try { localStorage.setItem('scratchpad_zoom', String(zoom)); } catch {}
+  }, [zoom]);
   const BASE_W = 100;
   const BASE_H = 32;
   const previewW = Math.round(BASE_W * zoom);
