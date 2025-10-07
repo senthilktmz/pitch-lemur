@@ -102,29 +102,7 @@ const ChordsMulti: React.FC<{ addScratchPadItem: (item: any) => void }> = ({ add
           </div>
         ))}
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '36px 0 24px 0', justifyContent: 'center' }}>
-        <button
-          aria-label="Add chord view"
-          onClick={handleAdd}
-          style={{
-            border: 'none',
-            background: '#1976d2',
-            color: 'white',
-            borderRadius: '50%',
-            width: 36,
-            height: 36,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: 20,
-            cursor: 'pointer',
-            boxShadow: '0 2px 8px #0002',
-          }}
-        >
-          <span style={{ fontSize: 24, fontWeight: "bold" }}>+</span>
-        </button>
-        <span style={{ fontWeight: 'bold', fontSize: 18 }}>Chords</span>
-      </div>
+      {/* Bottom add button removed as requested; adding views now disabled */}
     </div>
   );
 };

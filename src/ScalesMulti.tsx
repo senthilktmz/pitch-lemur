@@ -63,13 +63,7 @@ const ScalesMulti: React.FC<ScalesMultiProps> = ({ patterns, scalesPatternType, 
           <ScalesPattern zoom={zoom} patterns={patterns} scalesPatternType={scalesPatternType} ragasPatterns={ragasPatterns} />
         </div>
       ))}
-      <button
-        onClick={handleAdd}
-        style={{ marginTop: 8, background: '#1976d2', color: 'white', border: 'none', borderRadius: '50%', width: 48, height: 48, fontSize: 32, cursor: 'pointer', boxShadow: '0 2px 8px #90caf9', display: 'block', marginLeft: 'auto', marginRight: 'auto' }}
-        title="Add another instance"
-      >
-        +
-      </button>
+      {/* Bottom add button removed as requested */}
     </div>
   );
 };
