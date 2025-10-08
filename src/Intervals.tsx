@@ -255,8 +255,8 @@ const Intervals: React.FC = () => {
                           const off = degreeToOffset[d];
                           if (off !== undefined) labelByOffset[off] = d;
                         }
-                        // Alternate background classes using the same palette as the intervals table
-                        const palette = ['unison', 'minor', 'major', 'perfect', 'diminished'];
+                        // Green gradient-like palette for chords section rows
+                        const palette = ['chords-a', 'chords-b', 'chords-c', 'chords-d', 'chords-e'];
                         const rowClass = palette[idx % palette.length];
                         return (
                           <tr key={g.label + '-' + idx} className={rowClass}>

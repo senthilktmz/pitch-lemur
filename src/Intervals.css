@@ -39,12 +39,12 @@
   background: #d3d3d3;
 }
 
-/* Distinct palette for Scales Patterns tables */
-.intervals-table tr.scales-a { background: #fce8f3; } /* soft pink */
-.intervals-table tr.scales-b { background: #e7f6f2; } /* mint */
-.intervals-table tr.scales-c { background: #e8f0fe; } /* light indigo */
-.intervals-table tr.scales-d { background: #fff4e5; } /* peach */
-.intervals-table tr.scales-e { background: #eef7e6; } /* light green */
+/* Distinct palette for Scales Patterns tables (blue family) */
+.intervals-table tr.scales-a { background: #e7f0ff; }
+.intervals-table tr.scales-b { background: #d9eaff; }
+.intervals-table tr.scales-c { background: #cfe3ff; }
+.intervals-table tr.scales-d { background: #c4ddff; }
+.intervals-table tr.scales-e { background: #b7d5ff; }
 
 .intervals-table td {
   color: #222;
@@ -106,8 +106,8 @@ details.section > summary::-webkit-details-marker { display: none; }
 
 /* Section themes */
 .section-ref { border-color: #6d28d9; background: #f6f1ff; }
-.section-chords { border-color: #0ea5e9; background: #eef7ff; }
-.section-scales { border-color: #16a34a; background: #f0fbf2; }
+.section-chords { border-color: #16a34a; background: #f0fbf2; } /* green */
+.section-scales { border-color: #0ea5e9; background: #eef7ff; } /* blue */
 
 /* Row palette for the Scales & Chords reference table */
 .intervals-table tr.ref-a { background: #f2e7ff; }
@@ -115,3 +115,10 @@ details.section > summary::-webkit-details-marker { display: none; }
 .intervals-table tr.ref-c { background: #ece6ff; }
 .intervals-table tr.ref-d { background: #e8e1ff; }
 .intervals-table tr.ref-e { background: #e3dbff; }
+
+/* Row palette for Chord Patterns tables (green family) */
+.intervals-table tr.chords-a { background: #eaf8ed; }
+.intervals-table tr.chords-b { background: #dcf4e2; }
+.intervals-table tr.chords-c { background: #cff0d6; }
+.intervals-table tr.chords-d { background: #c1eac9; }
+.intervals-table tr.chords-e { background: #b4e4be; }
