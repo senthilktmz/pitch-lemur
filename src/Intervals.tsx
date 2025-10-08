@@ -183,17 +183,6 @@ const Intervals: React.FC = () => {
         );
       })()}
       </details>
-      <div className="intervals-legend">
-        {LEGEND_TYPES.map((legend, idx) => (
-          <button
-            key={legend.className}
-            className={`legend-btn ${legend.className}${activeTypes.includes(legend.className) ? ' active' : ''}`}
-            onClick={() => toggleType(legend.className)}
-          >
-            {legend.label}
-          </button>
-        ))}
-      </div>
 
       {/* Chord patterns table */}
       <details className="section section-chords" open>
