@@ -11,6 +11,10 @@ const ROOT_NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", 
 interface ChordsPatternProps {
   zoom?: number;
   addScratchPadItem?: (item: any) => void;
+  selectedPattern: string;
+  rootIndex: number | null;
+  onPatternChange: (pattern: string) => void;
+  onRootChange: (rootIndex: number | null) => void;
 }
 
 // Define the full chromatic interval sequence (1 octave)
@@ -74,15 +78,20 @@ function generateChordPattern([name, ...intervals]: string[]) {
 
 const CHORDS_PATTERNS = CHORDS_PATTERNS_ARRAY.map(generateChordPattern);
 
-const ChordsPattern: React.FC<ChordsPatternProps> = ({ zoom = 100, addScratchPadItem }) => {
+const ChordsPattern: React.FC<ChordsPatternProps> = ({ 
+  zoom = 100, 
+  addScratchPadItem, 
+  selectedPattern, 
+  rootIndex, 
+  onPatternChange, 
+  onRootChange 
+}) => {
   const KEY_WIDTH = 40 * (zoom / 100);
   const KEY_HEIGHT = 40 * (zoom / 100);
   const MINI_KEY_WIDTH = 280 * (zoom / 100);
   const MINI_KEY_HEIGHT = 80 * (zoom / 100);
   const KEYBOARD_LENGTH = MAIN_KEYBOARD_PATTERN.length;
 
-  const [selectedPattern, setSelectedPattern] = useState<string>(CHORDS_PATTERNS[0].name);
-  const [rootIndex, setRootIndex] = useState<number | null>(null); // index in ROOT_NOTES
   const [sliderOffsetX, setSliderOffsetX] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -93,6 +102,13 @@ const ChordsPattern: React.FC<ChordsPatternProps> = ({ zoom = 100, addScratchPad
   const [lastPlayedTable, setLastPlayedTable] = useState<{ note: string; freq: number }[] | null>(null);
 
   const currentPattern = CHORDS_PATTERNS.find((p) => p.name === selectedPattern);
+
+  // Align slider to root note when component mounts or when rootIndex changes
+  useEffect(() => {
+    if (rootIndex !== null) {
+      alignSliderToRoot(rootIndex);
+    }
+  }, [rootIndex]);
 
   // Helper: get frequency for note with octave (e.g. D#4, F#4, A4)
   function getFrequency(noteWithOctave: string) {
@@ -166,7 +182,7 @@ const ChordsPattern: React.FC<ChordsPatternProps> = ({ zoom = 100, addScratchPad
 
   // When a root button is clicked
   const handleRootButtonClick = (idx: number) => {
-    setRootIndex(idx);
+    onRootChange(idx);
     alignSliderToRoot(idx);
   };
 
@@ -174,7 +190,7 @@ const ChordsPattern: React.FC<ChordsPatternProps> = ({ zoom = 100, addScratchPad
   const handleSliderChange = (newRootIdx: number) => {
     const bKeyIndex = MAIN_KEYBOARD_PATTERN.findIndex(k => k.label === "B");
     const clampedIdx = newRootIdx > bKeyIndex ? bKeyIndex : newRootIdx % 12;
-    setRootIndex(clampedIdx);
+    onRootChange(clampedIdx);
     const note = ROOT_NOTES[clampedIdx];
     const firstIdx = MAIN_KEYBOARD_PATTERN.findIndex(k => k.label === note);
     setSliderOffsetX(firstIdx * KEY_WIDTH);
@@ -409,7 +425,7 @@ const ChordsPattern: React.FC<ChordsPatternProps> = ({ zoom = 100, addScratchPad
           <select
             id="pattern-select"
             value={selectedPattern}
-            onChange={(e) => setSelectedPattern(e.target.value)}
+            onChange={(e) => onPatternChange(e.target.value)}
             style={{ fontSize: 16, padding: '4px 8px' }}
           >
             {/* Render grouped options using headers in the raw patterns prop */}

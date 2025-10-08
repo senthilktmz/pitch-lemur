@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, { useState, useRef, useEffect } from "react";
 // import logo from "./logo.svg"; // Remove unused default logo
 import "./App.css";
 import MenuBar from "./MenuBar";
@@ -31,16 +31,49 @@ function App() {
         setScratchPadItems(items => items.filter(item => item.timestamp !== timestamp));
     };
 
-    let content;
-    if (activeTab === "chords") content = <ChordsMulti addScratchPadItem={addScratchPadItem}/>;
-    else if (activeTab === "scales") content =
-        <ScalesMulti patterns={SCALES_PATTERNS_ARRAY} scalesPatternType={activeTab}
-                     ragasPatterns={[]} addScratchPadItem={addScratchPadItem}/>;
-    else if (activeTab === "carnatic_scales") content =
-        <ScalesMulti patterns={RAGAS_PATTERNS_ARRAY} scalesPatternType={activeTab}
-                     ragasPatterns={RAGAS_PATTERNS} addScratchPadItem={addScratchPadItem}/>;
-    else if (activeTab === "intervals") content = <Intervals/>;
-    else if (activeTab === "scratchpad") content = <ScratchPad items={scratchPadItems} removeItem={removeScratchPadItem}/>;
+    // Create a style object to control visibility
+    const getTabStyle = (tabName: string) => ({
+      display: activeTab === tabName ? 'block' : 'none',
+      height: '100%',
+      width: '100%'
+    });
+
+    // Render all components but only show the active one
+    const content = (
+      <>
+        <div style={getTabStyle('chords')}>
+          <ChordsMulti addScratchPadItem={addScratchPadItem} />
+        </div>
+        <div style={getTabStyle('scales')}>
+          <ScalesMulti 
+            patterns={SCALES_PATTERNS_ARRAY} 
+            scalesPatternType="scales"
+            ragasPatterns={[]} 
+            addScratchPadItem={addScratchPadItem}
+          />
+        </div>
+        <div style={getTabStyle('carnatic_scales')}>
+          <ScalesMulti 
+            patterns={RAGAS_PATTERNS_ARRAY} 
+            scalesPatternType="carnatic_scales"
+            ragasPatterns={RAGAS_PATTERNS} 
+            addScratchPadItem={addScratchPadItem}
+          />
+        </div>
+        <div style={getTabStyle('intervals')}>
+          <Intervals />
+        </div>
+        <div style={getTabStyle('scratchpad')}>
+          <ScratchPad items={scratchPadItems} removeItem={removeScratchPadItem} />
+        </div>
+      </>
+    );
+
+    // Update ScratchPad when items change
+    useEffect(() => {
+      // This effect will ensure the ScratchPad is updated with the latest items
+      // The component itself is already in the DOM, just updating its props
+    }, [scratchPadItems]);
 
     return (
         <div className="App">

@@ -12,12 +12,29 @@ const TrashIcon = () => (
 
 interface Instance { id: number; }
 
+interface ChordInstance extends Instance {
+  selectedPattern: string;
+  rootIndex: number | null;
+}
+
 const ChordsMulti: React.FC<{ addScratchPadItem: (item: any) => void }> = ({ addScratchPadItem }) => {
-  const [instances, setInstances] = useState<Instance[]>([{ id: 0 }]);
+  const [instances, setInstances] = useState<ChordInstance[]>([{ id: 0, selectedPattern: 'Major', rootIndex: 0 }]);
   const [nextId, setNextId] = useState(1);
   const [selectedId, setSelectedId] = useState(0);
   const [zoom, setZoom] = useState(60); // percent
   const [maxZoom, setMaxZoom] = useState(120);
+  
+  const updateInstancePattern = (id: number, pattern: string) => {
+    setInstances(prev => prev.map(instance => 
+      instance.id === id ? { ...instance, selectedPattern: pattern } : instance
+    ));
+  };
+  
+  const updateInstanceRoot = (id: number, rootIndex: number | null) => {
+    setInstances(prev => prev.map(instance => 
+      instance.id === id ? { ...instance, rootIndex } : instance
+    ));
+  };
 
   useEffect(() => {
     const handleResize = () => {
@@ -33,7 +50,11 @@ const ChordsMulti: React.FC<{ addScratchPadItem: (item: any) => void }> = ({ add
   }, []);
 
   const handleAdd = () => {
-    setInstances((prev) => [...prev, { id: nextId }]);
+    setInstances((prev) => [...prev, { 
+      id: nextId, 
+      selectedPattern: 'Major', 
+      rootIndex: 0 
+    }]);
     setNextId((id) => id + 1);
   };
 
@@ -98,7 +119,14 @@ const ChordsMulti: React.FC<{ addScratchPadItem: (item: any) => void }> = ({ add
             >
               <span style={{ fontSize: 16, fontWeight: "bold", lineHeight: 1 }}>&#10005;</span>
             </button>
-            <ChordsPattern zoom={zoom} addScratchPadItem={addScratchPadItem} />
+            <ChordsPattern 
+              zoom={zoom} 
+              addScratchPadItem={addScratchPadItem}
+              selectedPattern={instance.selectedPattern}
+              rootIndex={instance.rootIndex}
+              onPatternChange={(pattern) => updateInstancePattern(instance.id, pattern)}
+              onRootChange={(rootIndex) => updateInstanceRoot(instance.id, rootIndex)}
+            />
           </div>
         ))}
       </div>
