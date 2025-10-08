@@ -15,6 +15,8 @@ interface ChordsPatternProps {
   rootIndex: number | null;
   onPatternChange: (pattern: string) => void;
   onRootChange: (rootIndex: number | null) => void;
+  // New: zoom (percent) just for the mini keyboard preview (default 300%)
+  miniKeyboardZoom?: number;
 }
 
 // Define the full chromatic interval sequence (1 octave)
@@ -84,7 +86,8 @@ const ChordsPattern: React.FC<ChordsPatternProps> = ({
   selectedPattern, 
   rootIndex, 
   onPatternChange, 
-  onRootChange 
+  onRootChange,
+  miniKeyboardZoom = 300,
 }) => {
   // Removed transient frequency UI state shown during Play; we keep only the persistent table
   const KEY_WIDTH = 40 * (zoom / 100);
@@ -101,6 +104,20 @@ const ChordsPattern: React.FC<ChordsPatternProps> = ({
   const audioContextRef = useRef<AudioContext | null>(null);
   const oscillatorsRef = useRef<OscillatorNode[]>([]);
   const [lastPlayedTable, setLastPlayedTable] = useState<{ note: string; freq: number }[] | null>(null);
+  // Local state for mini keyboard zoom (percent), initialized from localStorage or prop
+  const [miniZoom, setMiniZoom] = useState<number>(() => {
+    try {
+      const saved = localStorage.getItem('chords_mini_keyboard_zoom');
+      if (!saved) return miniKeyboardZoom;
+      const v = Number(saved);
+      return isFinite(v) ? Math.min(750, Math.max(50, v)) : miniKeyboardZoom;
+    } catch {
+      return miniKeyboardZoom;
+    }
+  });
+  useEffect(() => {
+    try { localStorage.setItem('chords_mini_keyboard_zoom', String(miniZoom)); } catch {}
+  }, [miniZoom]);
 
   const currentPattern = CHORDS_PATTERNS.find((p) => p.name === selectedPattern);
 
@@ -491,6 +508,40 @@ const ChordsPattern: React.FC<ChordsPatternProps> = ({
           })()}
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+          {/* Mini keyboard zoom control */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginTop: 4 }}>
+            <label style={{ fontSize: 13, color: '#555' }}>Mini keyboard size:</label>
+            <input
+              type="range"
+              min={50}
+              max={750}
+              step={5}
+              value={miniZoom}
+              onChange={(e) => setMiniZoom(Number(e.target.value))}
+              style={{ width: 180 }}
+            />
+            <span style={{ fontSize: 12, color: '#666', width: 40, textAlign: 'left' }}>{Math.round(miniZoom)}%</span>
+          </div>
+          {/* Mini keyboard preview */}
+          {keyboardViewJson && (() => {
+            try {
+              const kv = JSON.parse(keyboardViewJson);
+              const scale = Math.max(0.5, miniZoom / 100);
+              const nativeHeight = 45; // matches KeyboardViewSVG white key height
+              return (
+                // Reserve space properly for scaled content
+                <div style={{ transform: `scale(${scale})`, transformOrigin: 'left top', height: nativeHeight * scale, marginBottom: 12, overflow: 'visible' }}>
+                  <KeyboardViewSVG
+                    backwardPadding={kv.backward_padding || []}
+                    keySequence={kv.key_sequence || []}
+                    forwardPadding={kv.forward_padding || []}
+                  />
+                </div>
+              );
+            } catch {
+              return null;
+            }
+          })()}
           {/* Controls row under the keyboard */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <button onClick={handleAddToScratchPad} title="Add chord to Scratch Pad" style={{ border: 'none', background: '#1976d2', color: 'white', borderRadius: '50%', width: 28, height: 28, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, cursor: 'pointer', boxShadow: '0 1px 4px #0002' }}>

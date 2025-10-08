@@ -279,11 +279,21 @@ const ScratchPad: React.FC<ScratchPadProps> = ({ items, removeItem }) => {
                   justifyContent: 'center',
                   marginLeft: '4px'
                 }}
-                title="Show frequencies"
+                title={expandedItems[item.timestamp] ? 'Hide frequencies' : 'Show frequencies'}
               >
-                {/* Tuning fork icon */}
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                  <path d="M7 3h2v5a3 3 0 0 1-6 0V3h2v5a1 1 0 0 0 2 0V3zm8 0h2v5a3 3 0 0 1-6 0V3h2v5a1 1 0 0 0 2 0V3zm-3 11h2v7h-2v-7z"/>
+                {/* Waveform icon */}
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M2 12c1.5-4 3-4 4.5 0s3 4 4.5 0 3-4 4.5 0 3 4 4.5 0" />
                 </svg>
               </button>
             </div>
@@ -297,11 +307,11 @@ const ScratchPad: React.FC<ScratchPadProps> = ({ items, removeItem }) => {
                 borderRadius: '4px',
                 fontSize: '12px'
               }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <table style={{ width: 'auto', borderCollapse: 'collapse', margin: '0 auto' }}>
                   <thead>
                     <tr>
-                      <th style={{ textAlign: 'left', padding: '2px 4px' }}>Note</th>
-                      <th style={{ textAlign: 'right', padding: '2px 4px' }}>Freq (Hz)</th>
+                      <th style={{ textAlign: 'left', padding: '2px 6px', whiteSpace: 'nowrap' }}>Note</th>
+                      <th style={{ textAlign: 'right', padding: '2px 6px', whiteSpace: 'nowrap' }}>Freq (Hz)</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -310,15 +320,15 @@ const ScratchPad: React.FC<ScratchPadProps> = ({ items, removeItem }) => {
                       if (notes.length > 0) {
                         return notes.map((n, i) => (
                           <tr key={i}>
-                            <td style={{ padding: '2px 4px' }}>{n}</td>
-                            <td style={{ textAlign: 'right', padding: '2px 4px' }}>{getFrequency(n).toFixed(2)}</td>
+                            <td style={{ padding: '2px 6px', whiteSpace: 'nowrap' }}>{n}</td>
+                            <td style={{ textAlign: 'right', padding: '2px 6px', whiteSpace: 'nowrap' }}>{getFrequency(n).toFixed(2)}</td>
                           </tr>
                         ));
                       }
                       return item.noteFrequencies.map((freq, i) => (
                         <tr key={i}>
-                          <td style={{ padding: '2px 4px' }}>{getNoteFromFrequency(freq)}</td>
-                          <td style={{ textAlign: 'right', padding: '2px 4px' }}>{freq.toFixed(2)}</td>
+                          <td style={{ padding: '2px 6px', whiteSpace: 'nowrap' }}>{getNoteFromFrequency(freq)}</td>
+                          <td style={{ textAlign: 'right', padding: '2px 6px', whiteSpace: 'nowrap' }}>{freq.toFixed(2)}</td>
                         </tr>
                       ));
                     })()}
@@ -332,7 +342,6 @@ const ScratchPad: React.FC<ScratchPadProps> = ({ items, removeItem }) => {
                 top: 6,
                 right: 6,
                 width: 16,
-                height: 16,
                 borderRadius: '50%',
                 background: '#e53935',
                 color: '#fff',
