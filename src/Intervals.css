@@ -86,3 +86,32 @@
 .legend-btn.major { background: #e2f7d3; }
 .legend-btn.perfect { background: #e1daf7; }
 .legend-btn.diminished { background: #d3d3d3; }
+
+/* Collapsible section containers */
+details.section {
+  margin-top: 24px;
+  border: 2px solid #e0e6ef;
+  border-radius: 10px;
+  padding: 10px 12px 12px;
+  background: #fff;
+}
+details.section > summary {
+  font-size: 20px;
+  font-weight: 700;
+  cursor: pointer;
+  user-select: none;
+  margin: 0 0 8px 0;
+}
+details.section > summary::-webkit-details-marker { display: none; }
+
+/* Section themes */
+.section-ref { border-color: #6d28d9; background: #f6f1ff; }
+.section-chords { border-color: #0ea5e9; background: #eef7ff; }
+.section-scales { border-color: #16a34a; background: #f0fbf2; }
+
+/* Row palette for the Scales & Chords reference table */
+.intervals-table tr.ref-a { background: #f2e7ff; }
+.intervals-table tr.ref-b { background: #efeaff; }
+.intervals-table tr.ref-c { background: #ece6ff; }
+.intervals-table tr.ref-d { background: #e8e1ff; }
+.intervals-table tr.ref-e { background: #e3dbff; }

@@ -88,43 +88,44 @@ const Intervals: React.FC = () => {
 
   return (
     <div className="intervals-container">
-      <h2>Musical Intervals Reference</h2>
-      <table className="intervals-table">
-        <thead>
-          <tr>
-            <th>Interval</th>
-            <th>Description</th>
-            {intervalMatrix[0].slice(1).map((header, idx) => (
-              <th key={idx}>{header}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {intervalMatrix.slice(1).map((row, rowIdx) => {
-            const rowType = ROW_TYPE[rowIdx];
-            if (!showAll && !activeTypes.includes(rowType)) return null;
-            const intervalCells = row.slice(1);
-            const firstIdx = intervalCells.findIndex(cell => cell !== "");
-            const lastIdx = intervalCells.length - 1 - [...intervalCells].reverse().findIndex(cell => cell !== "");
-            return (
-              <tr key={rowIdx} className={getRowColor(rowIdx + 1)}>
-                <td>{row[0]}</td>
-                <td>{intervalDescriptions[rowIdx][1]}</td>
-                {intervalCells.map((cell, colIdx) => {
-                  if (!cell) return <td key={colIdx}></td>;
-                  if (colIdx === firstIdx || colIdx === lastIdx) {
-                    return <td key={colIdx}><b>{cell}</b></td>;
-                  }
-                  return <td key={colIdx} style={{ color: '#bbb' }}>{cell}</td>;
-                })}
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+      {/*<h2>Musical Intervals Reference</h2>*/}
+      {/*<table className="intervals-table">*/}
+      {/*  <thead>*/}
+      {/*    <tr>*/}
+      {/*      <th>Interval</th>*/}
+      {/*      <th>Description</th>*/}
+      {/*      {intervalMatrix[0].slice(1).map((header, idx) => (*/}
+      {/*        <th key={idx}>{header}</th>*/}
+      {/*      ))}*/}
+      {/*    </tr>*/}
+      {/*  </thead>*/}
+      {/*  <tbody>*/}
+      {/*    {intervalMatrix.slice(1).map((row, rowIdx) => {*/}
+      {/*      const rowType = ROW_TYPE[rowIdx];*/}
+      {/*      if (!showAll && !activeTypes.includes(rowType)) return null;*/}
+      {/*      const intervalCells = row.slice(1);*/}
+      {/*      const firstIdx = intervalCells.findIndex(cell => cell !== "");*/}
+      {/*      const lastIdx = intervalCells.length - 1 - [...intervalCells].reverse().findIndex(cell => cell !== "");*/}
+      {/*      return (*/}
+      {/*        <tr key={rowIdx} className={getRowColor(rowIdx + 1)}>*/}
+      {/*          <td>{row[0]}</td>*/}
+      {/*          <td>{intervalDescriptions[rowIdx][1]}</td>*/}
+      {/*          {intervalCells.map((cell, colIdx) => {*/}
+      {/*            if (!cell) return <td key={colIdx}></td>;*/}
+      {/*            if (colIdx === firstIdx || colIdx === lastIdx) {*/}
+      {/*              return <td key={colIdx}><b>{cell}</b></td>;*/}
+      {/*            }*/}
+      {/*            return <td key={colIdx} style={{ color: '#bbb' }}>{cell}</td>;*/}
+      {/*          })}*/}
+      {/*        </tr>*/}
+      {/*      );*/}
+      {/*    })}*/}
+      {/*  </tbody>*/}
+      {/*</table>*/}
       {/* Extended intervals mapping for scales and chords */}
-      <h2 style={{ marginTop: 24 }}>Musical Intervals Reference for Scales and Chords</h2>
-      {(() => {
+      <details className="section section-ref" open>
+        <summary>Musical Intervals Reference for Scales and Chords</summary>
+        {(() => {
         const rows = [
           { f: '1', s: '1', off: 0,  note: 'C',              name: 'Root (1)',                                       steps: '0 STEPS' },
           { f: '2♭', s: '1♯', off: 1,  note: 'C♯ / D♭',       name: 'Minor 2nd (♭2)',                                 steps: '½ STEP' },
@@ -163,8 +164,8 @@ const Intervals: React.FC = () => {
               </thead>
               <tbody>
                 {rows.map((r, i) => {
-                  // alternate row colors to match theme
-                  const palette = ['unison', 'minor', 'major', 'perfect', 'diminished'];
+                  // alternate row colors to match section-specific theme
+                  const palette = ['ref-a', 'ref-b', 'ref-c', 'ref-d', 'ref-e'];
                   const cls = palette[i % palette.length];
                   return (
                     <tr key={i} className={cls}>
@@ -181,84 +182,7 @@ const Intervals: React.FC = () => {
           </div>
         );
       })()}
-
-      {/* Scales patterns tables, grouped with a different color scheme (moved below chords) */}
-      <h2 style={{ marginTop: 36 }}>Scale Patterns Reference</h2>
-      {(() => {
-        // 12-degree columns (within one octave)
-        const DEG_COLUMNS = ["1","b2","2","b3","3","4","b5","5","b6","6","b7","7"];
-        const degreeToSemitone: Record<string, number> = {
-          "1":0, "b2":1, "2":2, "#2":3, "b3":3, "3":4, "4":5, "#4":6, "b5":6, "5":7, "#5":8, "b6":8, "6":9, "bb7":9, "b7":10, "7":11
-        };
-        const groups: { label: string; rows: { name: string; degrees: string[] }[] }[] = [];
-        let currentGroup = "";
-        let bucket: { name: string; degrees: string[] }[] = [];
-        const flush = () => {
-          if (currentGroup && bucket.length) {
-            groups.push({ label: currentGroup, rows: bucket });
-            bucket = [];
-          }
-        };
-        for (const row of SCALES_PATTERNS_ARRAY as any[]) {
-          if (!row || row.length === 0) continue;
-          const name = row[0];
-          if (typeof name === 'string' && name.startsWith('---') && name.endsWith('---')) {
-            flush();
-            currentGroup = name.slice(3, -3).trim();
-            continue;
-          }
-          bucket.push({ name, degrees: row.slice(1) });
-        }
-        flush();
-
-        return (
-          <div>
-            {groups.map((g) => (
-              <div key={g.label} style={{ marginTop: 24 }}>
-                <h3 style={{ margin: '8px 0 8px 0' }}>{g.label} Scales Patterns Reference</h3>
-                <div style={{ overflowX: 'auto' }}>
-                  <table className="intervals-table" style={{ minWidth: 820 }}>
-                    <thead>
-                      <tr>
-                        <th>Scale name</th>
-                        {DEG_COLUMNS.map((deg, i) => (
-                          <th key={i}>{deg}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {g.rows.map((r, idx) => {
-                        const labelBySemi: Record<number, string> = {};
-                        for (const d of r.degrees) {
-                          const semi = degreeToSemitone[d];
-                          if (semi !== undefined) labelBySemi[semi] = d;
-                        }
-                        // Different color scheme for scales rows
-                        const palette = ['scales-a', 'scales-b', 'scales-c', 'scales-d', 'scales-e'];
-                        const rowClass = palette[idx % palette.length];
-                        return (
-                          <tr key={g.label + '-' + idx} className={rowClass}>
-                            <td style={{ fontWeight: 600 }}>{r.name}</td>
-                            {DEG_COLUMNS.map((_, colIdx) => {
-                              const has = labelBySemi[colIdx] !== undefined;
-                              const label = has ? labelBySemi[colIdx] : DEG_COLUMNS[colIdx];
-                              return (
-                                <td key={colIdx} style={{ textAlign: 'center', color: has ? '#000' : '#bbb', fontWeight: has ? 700 as any : 400 }}>
-                                  {label}
-                                </td>
-                              );
-                            })}
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            ))}
-          </div>
-        );
-      })()}
+      </details>
       <div className="intervals-legend">
         {LEGEND_TYPES.map((legend, idx) => (
           <button
@@ -272,8 +196,9 @@ const Intervals: React.FC = () => {
       </div>
 
       {/* Chord patterns table */}
-      <h2 style={{ marginTop: 36 }}>Chord Patterns Reference</h2>
-      {(() => {
+      <details className="section section-chords" open>
+        <summary>Chord Patterns Reference</summary>
+        {(() => {
         // 22-degree column headers (flats notation for consistency)
         const DEG_COLUMNS = [
           "1","b2","2","b3","3","4","b5","5","b6","6","b7","7","8","b9","9","10♭","10","11","12♭","12","13♭","13"
@@ -357,6 +282,86 @@ const Intervals: React.FC = () => {
           </div>
         );
       })()}
+      </details>
+      {/* Scales patterns tables, grouped with a different color scheme (after chords) */}
+      <details className="section section-scales" open>
+        <summary>Scale Patterns Reference</summary>
+        {(() => {
+        // 12-degree columns (within one octave)
+        const DEG_COLUMNS = ["1","b2","2","b3","3","4","b5","5","b6","6","b7","7"];
+        const degreeToSemitone: Record<string, number> = {
+          "1":0, "b2":1, "2":2, "#2":3, "b3":3, "3":4, "4":5, "#4":6, "b5":6, "5":7, "#5":8, "b6":8, "6":9, "bb7":9, "b7":10, "7":11
+        };
+        const groups: { label: string; rows: { name: string; degrees: string[] }[] }[] = [];
+        let currentGroup = "";
+        let bucket: { name: string; degrees: string[] }[] = [];
+        const flush = () => {
+          if (currentGroup && bucket.length) {
+            groups.push({ label: currentGroup, rows: bucket });
+            bucket = [];
+          }
+        };
+        for (const row of SCALES_PATTERNS_ARRAY as any[]) {
+          if (!row || row.length === 0) continue;
+          const name = row[0];
+          if (typeof name === 'string' && name.startsWith('---') && name.endsWith('---')) {
+            flush();
+            currentGroup = name.slice(3, -3).trim();
+            continue;
+          }
+          bucket.push({ name, degrees: row.slice(1) });
+        }
+        flush();
+
+        return (
+          <div>
+            {groups.map((g) => (
+              <div key={g.label} style={{ marginTop: 24 }}>
+                <h3 style={{ margin: '8px 0 8px 0' }}>{g.label} Scales Patterns Reference</h3>
+                <div style={{ overflowX: 'auto' }}>
+                  <table className="intervals-table" style={{ minWidth: 820 }}>
+                    <thead>
+                      <tr>
+                        <th>Scale name</th>
+                        {DEG_COLUMNS.map((deg, i) => (
+                          <th key={i}>{deg}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {g.rows.map((r, idx) => {
+                        const labelBySemi: Record<number, string> = {};
+                        for (const d of r.degrees) {
+                          const semi = degreeToSemitone[d];
+                          if (semi !== undefined) labelBySemi[semi] = d;
+                        }
+                        // Different color scheme for scales rows
+                        const palette = ['scales-a', 'scales-b', 'scales-c', 'scales-d', 'scales-e'];
+                        const rowClass = palette[idx % palette.length];
+                        return (
+                          <tr key={g.label + '-' + idx} className={rowClass}>
+                            <td style={{ fontWeight: 600 }}>{r.name}</td>
+                            {DEG_COLUMNS.map((_, colIdx) => {
+                              const has = labelBySemi[colIdx] !== undefined;
+                              const label = has ? labelBySemi[colIdx] : DEG_COLUMNS[colIdx];
+                              return (
+                                <td key={colIdx} style={{ textAlign: 'center', color: has ? '#000' : '#bbb', fontWeight: has ? 700 as any : 400 }}>
+                                  {label}
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ))}
+          </div>
+        );
+      })()}
+      </details>
     </div>
   );
 };
