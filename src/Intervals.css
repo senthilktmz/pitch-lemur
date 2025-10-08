@@ -39,6 +39,13 @@
   background: #d3d3d3;
 }
 
+/* Distinct palette for Scales Patterns tables */
+.intervals-table tr.scales-a { background: #fce8f3; } /* soft pink */
+.intervals-table tr.scales-b { background: #e7f6f2; } /* mint */
+.intervals-table tr.scales-c { background: #e8f0fe; } /* light indigo */
+.intervals-table tr.scales-d { background: #fff4e5; } /* peach */
+.intervals-table tr.scales-e { background: #eef7e6; } /* light green */
+
 .intervals-table td {
   color: #222;
 }

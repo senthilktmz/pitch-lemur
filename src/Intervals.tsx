@@ -1,6 +1,7 @@
 import "./Intervals.css";
 import React, { useState } from "react";
 import { CHORDS_PATTERNS_ARRAY } from "./patterns/Chords";
+import { SCALES_PATTERNS_ARRAY } from "./patterns/Scales";
 
 const intervalMatrix = [
   ["", "1", "♭2", "2", "♭3", "3", "4", "♭5", "5", "♭6", "6", "♭7", "7"],
@@ -177,6 +178,84 @@ const Intervals: React.FC = () => {
                 })}
               </tbody>
             </table>
+          </div>
+        );
+      })()}
+
+      {/* Scales patterns tables, grouped with a different color scheme (moved below chords) */}
+      <h2 style={{ marginTop: 36 }}>Scale Patterns Reference</h2>
+      {(() => {
+        // 12-degree columns (within one octave)
+        const DEG_COLUMNS = ["1","b2","2","b3","3","4","b5","5","b6","6","b7","7"];
+        const degreeToSemitone: Record<string, number> = {
+          "1":0, "b2":1, "2":2, "#2":3, "b3":3, "3":4, "4":5, "#4":6, "b5":6, "5":7, "#5":8, "b6":8, "6":9, "bb7":9, "b7":10, "7":11
+        };
+        const groups: { label: string; rows: { name: string; degrees: string[] }[] }[] = [];
+        let currentGroup = "";
+        let bucket: { name: string; degrees: string[] }[] = [];
+        const flush = () => {
+          if (currentGroup && bucket.length) {
+            groups.push({ label: currentGroup, rows: bucket });
+            bucket = [];
+          }
+        };
+        for (const row of SCALES_PATTERNS_ARRAY as any[]) {
+          if (!row || row.length === 0) continue;
+          const name = row[0];
+          if (typeof name === 'string' && name.startsWith('---') && name.endsWith('---')) {
+            flush();
+            currentGroup = name.slice(3, -3).trim();
+            continue;
+          }
+          bucket.push({ name, degrees: row.slice(1) });
+        }
+        flush();
+
+        return (
+          <div>
+            {groups.map((g) => (
+              <div key={g.label} style={{ marginTop: 24 }}>
+                <h3 style={{ margin: '8px 0 8px 0' }}>{g.label} Scales Patterns Reference</h3>
+                <div style={{ overflowX: 'auto' }}>
+                  <table className="intervals-table" style={{ minWidth: 820 }}>
+                    <thead>
+                      <tr>
+                        <th>Scale name</th>
+                        {DEG_COLUMNS.map((deg, i) => (
+                          <th key={i}>{deg}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {g.rows.map((r, idx) => {
+                        const labelBySemi: Record<number, string> = {};
+                        for (const d of r.degrees) {
+                          const semi = degreeToSemitone[d];
+                          if (semi !== undefined) labelBySemi[semi] = d;
+                        }
+                        // Different color scheme for scales rows
+                        const palette = ['scales-a', 'scales-b', 'scales-c', 'scales-d', 'scales-e'];
+                        const rowClass = palette[idx % palette.length];
+                        return (
+                          <tr key={g.label + '-' + idx} className={rowClass}>
+                            <td style={{ fontWeight: 600 }}>{r.name}</td>
+                            {DEG_COLUMNS.map((_, colIdx) => {
+                              const has = labelBySemi[colIdx] !== undefined;
+                              const label = has ? labelBySemi[colIdx] : DEG_COLUMNS[colIdx];
+                              return (
+                                <td key={colIdx} style={{ textAlign: 'center', color: has ? '#000' : '#bbb', fontWeight: has ? 700 as any : 400 }}>
+                                  {label}
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ))}
           </div>
         );
       })()}
