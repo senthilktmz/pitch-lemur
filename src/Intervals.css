@@ -91,23 +91,45 @@
 details.section {
   margin-top: 24px;
   border: 2px solid #e0e6ef;
-  border-radius: 10px;
-  padding: 10px 12px 12px;
+  border-radius: 12px;
+  padding: 12px;
   background: #fff;
 }
+/* Header: beautiful pill with caret on the right */
 details.section > summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
   font-size: 20px;
-  font-weight: 700;
+  font-weight: 800;
   cursor: pointer;
   user-select: none;
-  margin: 0 0 8px 0;
+  margin: 0 0 10px 0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06) inset;
 }
+/* Hide default markers across browsers */
 details.section > summary::-webkit-details-marker { display: none; }
+details.section > summary::marker { content: ''; }
+/* Custom caret on the right */
+details.section > summary::after {
+  content: '▸';
+  margin-left: auto;
+  font-size: 18px;
+  transition: transform 0.2s ease;
+}
+details.section[open] > summary::after { content: '▾'; }
+details.section > summary:hover { filter: brightness(0.98); }
 
 /* Section themes */
 .section-ref { border-color: #6d28d9; background: #f6f1ff; }
 .section-chords { border-color: #16a34a; background: #f0fbf2; } /* green */
 .section-scales { border-color: #0ea5e9; background: #eef7ff; } /* blue */
+/* Gradient summaries per section */
+.section-ref > summary { background: linear-gradient(90deg, #efe7ff, #f6f1ff); border: 1px solid #d7c8ff; }
+.section-chords > summary { background: linear-gradient(90deg, #e5f7ea, #f0fbf2); border: 1px solid #bfe6cc; }
+.section-scales > summary { background: linear-gradient(90deg, #e7f1ff, #eef7ff); border: 1px solid #b6dbff; }
 
 /* Row palette for the Scales & Chords reference table */
 .intervals-table tr.ref-a { background: #f2e7ff; }
