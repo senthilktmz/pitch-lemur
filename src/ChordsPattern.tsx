@@ -617,6 +617,28 @@ const ChordsPattern: React.FC<ChordsPatternProps> = ({
           <div style={{ textAlign: 'center', marginBottom: 8, color: '#555' }}>
             Tip: Drag or slide the pattern bar below to left or right to explore different chord positions.
           </div>
+          {/* Debug: show raw pattern from patterns/Chords.ts just above the slider */}
+          {(() => {
+            const row: any = CHORDS_PATTERNS_ARRAY.find(([name]) => name === selectedPattern);
+            if (!row) return null;
+            const degrees: string[] = row.slice(1);
+            return (
+              <div style={{
+                margin: '8px auto 4px',
+                padding: '6px 10px',
+                background: '#fff8e1',
+                border: '1px dashed #e0a800',
+                borderRadius: 6,
+                color: '#000',
+                fontSize: 26,
+                maxWidth: KEY_WIDTH * KEYBOARD_LENGTH,
+                textAlign: 'center'
+              }}>
+                <strong style={{ marginRight: 6 }}>Raw pattern:</strong>
+                {degrees.join('  •  ')}
+              </div>
+            );
+          })()}
           <IntervalPattern
             pattern={sliderPattern}
             keyWidth={KEY_WIDTH}
