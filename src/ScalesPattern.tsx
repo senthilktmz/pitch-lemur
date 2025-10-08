@@ -325,24 +325,33 @@ const ScalesPattern: React.FC<ScalesPatternProps> = ({ zoom = 100, patterns, sca
     }
   }, [rootIndex, selectedPattern]);
 
-  // PATCH: Dynamically generate pattern for slider to cover all degrees (including 9, 11, 13)
+  // PATCH: Build slider pattern using the actual degrees for the selected scale at each semitone.
+  // This guarantees we prefer labels like b3 over enharmonic #2 when the raw pattern uses b3.
   const sliderPattern = (() => {
     const degreeToSemitone: Record<string, number> = {
       "1": 0, "b2": 1, "2": 2, "#2": 3, "b3": 3, "3": 4, "4": 5, "#4": 6, "b5": 6, "5": 7, "#5": 8, "b6": 8, "6": 9, "bb7": 9, "b7": 10, "7": 11,
+      // Extensions map beyond the octave
       "b9": 13, "9": 14, "#9": 15, "11": 17, "#11": 18, "b13": 20, "13": 21
     };
     const degrees = currentPattern ? (SCALES_PATTERNS_ARRAY.find(([name]) => name === selectedPattern) || []).slice(1) as string[] : [];
-    const maxSemitone = Math.max(...degrees.map(d => degreeToSemitone[d]));
-    const pattern = [];
+    // Map the actual degrees for this pattern to their semitone positions
+    const labelBySemitone: Record<number, string> = {};
+    for (const deg of degrees) {
+      const st = degreeToSemitone[deg];
+      if (st !== undefined) labelBySemitone[st] = deg;
+    }
+    const semitones = Object.keys(labelBySemitone).map(n => Number(n));
+    const maxSemitone = semitones.length ? Math.max(...semitones) : 0;
+    const pattern: any[] = [];
     for (let i = 0; i <= maxSemitone; i++) {
-      const degree = Object.keys(degreeToSemitone).find(key => degreeToSemitone[key] === i);
-      if (degree && degrees.includes(degree)) {
+      const label = labelBySemitone[i];
+      if (label) {
         pattern.push({
-          label: degree,
+          label,
           color: "lightblue",
           type: "scale_interval_member",
-          fontColor: degree === "1" ? "darkgreen" : undefined,
-          fontType: degree === "1" ? "bold" : undefined
+          fontColor: label === "1" ? "darkgreen" : undefined,
+          fontType: label === "1" ? "bold" : undefined
         });
       } else {
         pattern.push({ label: "", color: "white", type: "scale_interval_blank" });
@@ -541,6 +550,28 @@ const ScalesPattern: React.FC<ScalesPatternProps> = ({ zoom = 100, patterns, sca
               <div style={{ textAlign: 'center', marginBottom: 8, color: '#555' }}>
                 Tip: Drag or slide the pattern bar below to left or right to explore different chord positions.
               </div>
+              {/* Debug: show raw pattern from patterns/Scales.tsx just above the slider */}
+              {(() => {
+                const row: any = SCALES_PATTERNS_ARRAY.find(([name]) => name === selectedPattern);
+                if (!row) return null;
+                const degrees: string[] = row.slice(1);
+                return (
+                  <div style={{
+                    margin: '8px auto 4px',
+                    padding: '6px 10px',
+                    background: '#fff8e1',
+                    border: '1px dashed #e0a800',
+                    borderRadius: 6,
+                    color: '#000',
+                    fontSize: 26,
+                    maxWidth: KEY_WIDTH * KEYBOARD_LENGTH,
+                    textAlign: 'center'
+                  }}>
+                    <strong style={{ marginRight: 6 }}>Raw pattern:</strong>
+                    {degrees.join('  •  ')}
+                  </div>
+                );
+              })()}
               <IntervalPattern
                   pattern={sliderPattern}
                   keyWidth={KEY_WIDTH}

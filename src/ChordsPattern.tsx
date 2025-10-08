@@ -161,7 +161,16 @@ const ChordsPattern: React.FC<ChordsPatternProps> = ({
       const kv = keyboardViewJson ? JSON.parse(keyboardViewJson) : null;
       if (kv) notes = kv.key_sequence.filter((n: string) => !n.startsWith('0'));
     } catch {}
-    if (notes.length === 0) return;
+    // Fallback: derive from current pattern if JSON missing
+    if (notes.length === 0) {
+      try {
+        notes = getPatternNotes();
+      } catch {}
+    }
+    if (notes.length === 0) {
+      try { console.warn('[ChordsPattern] No notes to play.'); } catch {}
+      return;
+    }
 
     const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
     audioContextRef.current = ctx;
@@ -171,6 +180,8 @@ const ChordsPattern: React.FC<ChordsPatternProps> = ({
     gain.gain.linearRampToValueAtTime(0.18, ctx.currentTime + 0.92);
     gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 1);
     gain.connect(ctx.destination);
+    // Some browsers start contexts as 'suspended'. Attempt to resume.
+    try { ctx.resume?.(); } catch {}
     const oscillators: OscillatorNode[] = notes.map(note => {
       const osc = ctx.createOscillator();
       osc.type = 'sine';
@@ -530,7 +541,7 @@ const ChordsPattern: React.FC<ChordsPatternProps> = ({
               const nativeHeight = 45; // matches KeyboardViewSVG white key height
               return (
                 // Reserve space properly for scaled content
-                <div style={{ transform: `scale(${scale})`, transformOrigin: 'left top', height: nativeHeight * scale, marginBottom: 12, overflow: 'visible' }}>
+                <div style={{ transform: `scale(${scale})`, transformOrigin: 'left top', height: nativeHeight * scale, marginBottom: 12, overflow: 'visible', pointerEvents: 'none' }}>
                   <KeyboardViewSVG
                     backwardPadding={kv.backward_padding || []}
                     keySequence={kv.key_sequence || []}
