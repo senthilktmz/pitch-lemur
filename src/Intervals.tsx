@@ -121,6 +121,65 @@ const Intervals: React.FC = () => {
           })}
         </tbody>
       </table>
+      {/* Extended intervals mapping for scales and chords */}
+      <h2 style={{ marginTop: 24 }}>Musical Intervals Reference for Scales and Chords</h2>
+      {(() => {
+        const rows = [
+          { f: '1', s: '1', off: 0,  note: 'C',              name: 'Root (1)',                                       steps: '0 STEPS' },
+          { f: '2♭', s: '1♯', off: 1,  note: 'C♯ / D♭',       name: 'Minor 2nd (♭2)',                                 steps: '½ STEP' },
+          { f: '2', s: '2', off: 2,  note: 'D',              name: 'Major 2nd (2)',                                  steps: '1 WHOLE STEP' },
+          { f: '3♭', s: '2♯', off: 3,  note: 'D♯ / E♭',       name: 'Minor 3rd (♭3) / Augmented 2nd (♯2)',            steps: '1½ STEPS' },
+          { f: '3', s: '3', off: 4,  note: 'E',              name: 'Major 3rd (3)',                                  steps: '2 WHOLE STEPS' },
+          { f: '4', s: '4', off: 5,  note: 'F',              name: 'Perfect 4th (4)',                                steps: '2½ STEPS' },
+          { f: '5♭', s: '4♯', off: 6,  note: 'F♯ / G♭',       name: 'Diminished 5th (♭5) / Augmented 4th (♯4)',       steps: '3 WHOLE STEPS' },
+          { f: '5', s: '5', off: 7,  note: 'G',              name: 'Perfect 5th (5)',                                steps: '3½ STEPS' },
+          { f: '6♭', s: '5♯', off: 8,  note: 'G♯ / A♭',       name: 'Minor 6th (♭6) / Augmented 5th (♯5)',            steps: '4 WHOLE STEPS' },
+          { f: '6', s: '6', off: 9,  note: 'A',              name: 'Major 6th (6)',                                  steps: '4½ STEPS' },
+          { f: '7♭', s: '6♯', off: 10, note: 'A♯ / B♭',       name: 'Minor 7th (♭7)',                                 steps: '5 WHOLE STEPS' },
+          { f: '7', s: '7', off: 11, note: 'B',              name: 'Major 7th (7)',                                  steps: '5½ STEPS' },
+          { f: '8', s: '8', off: 12, note: 'C',              name: 'Octave (8ve)',                                   steps: '6 WHOLE STEPS' },
+          { f: '9♭', s: '8♯', off: 13, note: 'C♯ / D♭',       name: 'Minor 9th (♭9)',                                 steps: '6½ STEPS' },
+          { f: '9', s: '9', off: 14, note: 'D',              name: 'Major 9th (9)',                                  steps: '7 WHOLE STEPS' },
+          { f: '10♭', s: '9♯', off: 15, note: 'D♯ / E♭',       name: 'Augmented 9th (♯9) / Minor 10th',                 steps: '7½ STEPS' },
+          { f: '10', s: '10', off: 16, note: 'E',              name: 'Major 10th (M3 an octave higher)',               steps: '8 WHOLE STEPS' },
+          { f: '11', s: '11', off: 17, note: 'F',              name: 'Perfect 11th (11)',                              steps: '8½ STEPS' },
+          { f: '12♭', s: '11♯', off: 18, note: 'F♯ / G♭',       name: 'Augmented 11th (♯11)',                           steps: '9 WHOLE STEPS' },
+          { f: '12', s: '12', off: 19, note: 'G',              name: 'Perfect 12th (P5 an octave higher)',             steps: '9½ STEPS' },
+          { f: '13♭', s: '12♯', off: 20, note: 'G♯ / A♭',       name: 'Minor 13th (♭13)',                               steps: '10 WHOLE STEPS' },
+          { f: '13', s: '13', off: 21, note: 'A',              name: 'Major 13th (13)',                                steps: '10½ STEPS' },
+        ];
+        return (
+          <div style={{ overflowX: 'auto' }}>
+            <table className="intervals-table" style={{ minWidth: 760 }}>
+              <thead>
+                <tr>
+                  <th>Degree (flats)</th>
+                  <th>Degree (sharps)</th>
+                  <th>Description</th>
+                  <th>Note (from C)</th>
+                  <th>Interval Name</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((r, i) => {
+                  // alternate row colors to match theme
+                  const palette = ['unison', 'minor', 'major', 'perfect', 'diminished'];
+                  const cls = palette[i % palette.length];
+                  return (
+                    <tr key={i} className={cls}>
+                      <td>{r.f}</td>
+                      <td>{r.s}</td>
+                      <td>{r.steps}</td>
+                      <td>{r.note}</td>
+                      <td>{r.name}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        );
+      })()}
       <div className="intervals-legend">
         {LEGEND_TYPES.map((legend, idx) => (
           <button
