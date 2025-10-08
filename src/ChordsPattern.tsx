@@ -86,7 +86,7 @@ const ChordsPattern: React.FC<ChordsPatternProps> = ({
   onPatternChange, 
   onRootChange 
 }) => {
-  const [frequencies, setFrequencies] = useState<{note: string, freq: number}[]>([]);
+  // Removed transient frequency UI state shown during Play; we keep only the persistent table
   const KEY_WIDTH = 40 * (zoom / 100);
   const KEY_HEIGHT = 40 * (zoom / 100);
   const MINI_KEY_WIDTH = 280 * (zoom / 100);
@@ -145,19 +145,6 @@ const ChordsPattern: React.FC<ChordsPatternProps> = ({
       if (kv) notes = kv.key_sequence.filter((n: string) => !n.startsWith('0'));
     } catch {}
     if (notes.length === 0) return;
-    
-    // Update the frequencies state to show on screen
-    const newFrequencies = notes.map(note => {
-      const freq = getFrequency(note);
-      return {
-        note: note,
-        freq: Number(freq.toFixed(2))
-      };
-    });
-    setFrequencies(newFrequencies);
-    
-    // Clear the frequencies after 3 seconds
-    setTimeout(() => setFrequencies([]), 3000);
 
     const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
     audioContextRef.current = ctx;
@@ -504,35 +491,6 @@ const ChordsPattern: React.FC<ChordsPatternProps> = ({
           })()}
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
-          {frequencies.length > 0 && (
-            <div style={{
-              margin: '10px auto',
-              padding: '10px',
-              background: '#f5f5f5',
-              borderRadius: '5px',
-              maxWidth: '400px',
-              textAlign: 'center'
-            }}>
-              <h4>Current Chord Frequencies</h4>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr>
-                    <th>Note</th>
-                    <th>Frequency (Hz)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {frequencies.map((item, i) => (
-                    <tr key={i}>
-                      <td>{item.note}</td>
-                      <td>{item.freq}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-          
           {/* Controls row under the keyboard */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <button onClick={handleAddToScratchPad} title="Add chord to Scratch Pad" style={{ border: 'none', background: '#1976d2', color: 'white', borderRadius: '50%', width: 28, height: 28, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, cursor: 'pointer', boxShadow: '0 1px 4px #0002' }}>
