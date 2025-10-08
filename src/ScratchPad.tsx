@@ -45,6 +45,8 @@ interface ScratchPadProps {
 }
 
 const ScratchPad: React.FC<ScratchPadProps> = ({ items, removeItem }) => {
+  const [expandedItems, setExpandedItems] = useState<Record<number, boolean>>({});
+  const [frequencies, setFrequencies] = useState<{note: string, freq: number}[]>([]);
   // Zoom for preview thumbnails (1 = 100%) - persisted across sessions
   const [zoom, setZoom] = useState<number>(() => {
     try {
@@ -66,7 +68,49 @@ const ScratchPad: React.FC<ScratchPadProps> = ({ items, removeItem }) => {
   const previewH = Math.round(BASE_H * zoom);
   const cardW = Math.max(120, previewW + 20);
   const cardH = Math.max(78, previewH + 46);
+  // Helper: get frequency for note with octave (e.g. D#4, F#4, A4)
+  function getFrequency(noteWithOctave: string) {
+    const NOTE_TO_MIDI: Record<string, number> = {
+      'C': 0, 'C#': 1, 'D': 2, 'D#': 3, 'E': 4, 'F': 5, 'F#': 6, 'G': 7, 'G#': 8, 'A': 9, 'A#': 10, 'B': 11
+    };
+    const match = noteWithOctave.match(/^([A-G]#?)(\d)$/);
+    if (!match) return 261.63; // default to middle C
+    const [, note, octaveStr] = match;
+    const octave = parseInt(octaveStr, 10);
+    const midi = (octave + 1) * 12 + NOTE_TO_MIDI[note];
+    return 440 * Math.pow(2, (midi - 69) / 12);
+  }
+  
+  // Derive canonical notes for an item: prefer item.keySequence (authoritative), else item.notes
+  const getNotesForItem = (item: ScratchPadItem): string[] => {
+    if (item.keySequence && item.keySequence.length > 0) {
+      return item.keySequence.filter((n: string) => !n.startsWith('0'));
+    }
+    if (item.notes && item.notes.length > 0) return item.notes;
+    return [];
+  };
+  // Helper function to find the closest note name for a frequency
+  const getNoteFromFrequency = (freq: number): string => {
+    const A4 = 440;
+    // Use standard C-based note names and MIDI 69 as A4 reference
+    const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+    const midi = Math.round(69 + 12 * Math.log2(freq / A4));
+    const noteIndex = ((midi % 12) + 12) % 12; // ensure positive modulo
+    const octave = Math.floor(midi / 12) - 1;
+    return `${noteNames[noteIndex]}${octave}`;
+  };
+
   const playChord = (noteFrequencies: number[]) => {
+    // Update the frequencies state to show on screen
+    const newFrequencies = noteFrequencies.map(freq => ({
+      note: getNoteFromFrequency(freq),
+      freq: Number(freq.toFixed(2))
+    }));
+    setFrequencies(newFrequencies);
+    
+    // Clear the frequencies after 3 seconds
+    setTimeout(() => setFrequencies([]), 3000);
+
     const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
     const gain = ctx.createGain();
     gain.gain.setValueAtTime(0, ctx.currentTime);
@@ -124,6 +168,7 @@ const ScratchPad: React.FC<ScratchPadProps> = ({ items, removeItem }) => {
         <span style={{ fontSize: 12, color: '#666', width: 40, textAlign: 'left' }}>{Math.round(zoom * 100)}%</span>
       </div>
       <h2 style={{ textAlign: 'center', color: '#444' }}>Scratch Pad</h2>
+      {/* Removed the global frequency display in favor of per-item frequency tables */}
       <div
         style={{
           display: 'grid',
@@ -156,7 +201,11 @@ const ScratchPad: React.FC<ScratchPadProps> = ({ items, removeItem }) => {
               overflow: 'hidden',
               boxSizing: 'border-box'
             }}
-            onClick={() => (item.playMode === 'scale' ? playScale(item.noteFrequencies) : playChord(item.noteFrequencies))}
+            onClick={() => {
+              const notes = getNotesForItem(item);
+              const freqs = notes.length > 0 ? notes.map(n => getFrequency(n)) : item.noteFrequencies;
+              return item.playMode === 'scale' ? playScale(freqs) : playChord(freqs);
+            }}
           >
             {/* Render the same full mini keyboard as in Chords view (no cropping), scaled to fit */}
             {item.keySequence && item.keySequence.length > 0 ? (() => {
@@ -191,9 +240,92 @@ const ScratchPad: React.FC<ScratchPadProps> = ({ items, removeItem }) => {
                 <MiniKeyboard notes={item.notes.map(n => n.replace(/\d+$/, ''))} root={item.root} width={previewW} height={previewH} />
               ) : null
             )}
-            <div style={{ fontSize: 12, color: '#1976d2', fontWeight: 500, marginTop: 2, textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: previewW }}>
-              {item.type.split('/')[0].trim()}
+            <div style={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center',
+              width: '100%',
+              padding: '0 8px',
+              boxSizing: 'border-box'
+            }}>
+              <div style={{ 
+                fontSize: 12, 
+                color: '#1976d2', 
+                fontWeight: 500, 
+                textAlign: 'center', 
+                whiteSpace: 'nowrap', 
+                overflow: 'hidden', 
+                textOverflow: 'ellipsis',
+                flex: 1
+              }}>
+                {item.type.split('/')[0].trim()}
+              </div>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setExpandedItems(prev => ({
+                    ...prev,
+                    [item.timestamp]: !prev[item.timestamp]
+                  }));
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: expandedItems[item.timestamp] ? '#1976d2' : '#666',
+                  cursor: 'pointer',
+                  padding: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginLeft: '4px'
+                }}
+                title="Show frequencies"
+              >
+                {/* Tuning fork icon */}
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M7 3h2v5a3 3 0 0 1-6 0V3h2v5a1 1 0 0 0 2 0V3zm8 0h2v5a3 3 0 0 1-6 0V3h2v5a1 1 0 0 0 2 0V3zm-3 11h2v7h-2v-7z"/>
+                </svg>
+              </button>
             </div>
+            
+            {expandedItems[item.timestamp] && (
+              <div style={{
+                width: '100%',
+                marginTop: '8px',
+                padding: '8px',
+                background: '#f5f5f5',
+                borderRadius: '4px',
+                fontSize: '12px'
+              }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr>
+                      <th style={{ textAlign: 'left', padding: '2px 4px' }}>Note</th>
+                      <th style={{ textAlign: 'right', padding: '2px 4px' }}>Freq (Hz)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(() => {
+                      const notes = getNotesForItem(item);
+                      if (notes.length > 0) {
+                        return notes.map((n, i) => (
+                          <tr key={i}>
+                            <td style={{ padding: '2px 4px' }}>{n}</td>
+                            <td style={{ textAlign: 'right', padding: '2px 4px' }}>{getFrequency(n).toFixed(2)}</td>
+                          </tr>
+                        ));
+                      }
+                      return item.noteFrequencies.map((freq, i) => (
+                        <tr key={i}>
+                          <td style={{ padding: '2px 4px' }}>{getNoteFromFrequency(freq)}</td>
+                          <td style={{ textAlign: 'right', padding: '2px 4px' }}>{freq.toFixed(2)}</td>
+                        </tr>
+                      ));
+                    })()}
+                  </tbody>
+                </table>
+              </div>
+            )}
             <span
               style={{
                 position: 'absolute',

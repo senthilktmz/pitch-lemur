@@ -86,6 +86,7 @@ const ChordsPattern: React.FC<ChordsPatternProps> = ({
   onPatternChange, 
   onRootChange 
 }) => {
+  const [frequencies, setFrequencies] = useState<{note: string, freq: number}[]>([]);
   const KEY_WIDTH = 40 * (zoom / 100);
   const KEY_HEIGHT = 40 * (zoom / 100);
   const MINI_KEY_WIDTH = 280 * (zoom / 100);
@@ -125,6 +126,16 @@ const ChordsPattern: React.FC<ChordsPatternProps> = ({
     return 440 * Math.pow(2, (midi - 69) / 12);
   }
 
+  // Helper function to find the closest note name for a frequency
+  const getNoteFromFrequency = (freq: number): string => {
+    const A4 = 440;
+    const noteNames = ['A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#'];
+    const noteNum = 12 * (Math.log2(freq / A4)) + 49;
+    const noteIndex = Math.round(noteNum) % 12;
+    const octave = Math.floor(noteNum / 12) - 1;
+    return `${noteNames[noteIndex]}${octave}`;
+  };
+
   const playChord = () => {
     if (isPlaying) return;
     // Get the notes to play (not prefixed with '0') from key_sequence
@@ -134,6 +145,20 @@ const ChordsPattern: React.FC<ChordsPatternProps> = ({
       if (kv) notes = kv.key_sequence.filter((n: string) => !n.startsWith('0'));
     } catch {}
     if (notes.length === 0) return;
+    
+    // Update the frequencies state to show on screen
+    const newFrequencies = notes.map(note => {
+      const freq = getFrequency(note);
+      return {
+        note: note,
+        freq: Number(freq.toFixed(2))
+      };
+    });
+    setFrequencies(newFrequencies);
+    
+    // Clear the frequencies after 3 seconds
+    setTimeout(() => setFrequencies([]), 3000);
+
     const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
     audioContextRef.current = ctx;
     const gain = ctx.createGain();
@@ -199,24 +224,21 @@ const ChordsPattern: React.FC<ChordsPatternProps> = ({
   // Map chord degrees to notes, placing 9/11/13 in the next octave and avoiding duplicate highlights
   const getPatternNotes = () => {
     if (!currentPattern || rootIndex === null) return [];
-    const baseOctave = 4;
-    const nextOctave = baseOctave + 1;
+    // Use the same semitone mapping and octave math as the keyboardView builder
     const degreeToSemitone: Record<string, number> = {
       "1": 0, "b2": 1, "2": 2, "#2": 3, "b3": 3, "3": 4, "4": 5, "#4": 6, "b5": 6, "5": 7, "#5": 8, "b6": 8, "6": 9, "bb7": 9, "b7": 10, "7": 11,
-      "b9": 1, "9": 2, "#9": 3, "b10": 3, "11": 5, "#11": 6, "b13": 8, "13": 9
+      // Extensions are placed in the next octave (+12)
+      "b9": 1+12, "9": 2+12, "#9": 3+12, "b10": 3+12, "11": 5+12, "#11": 6+12, "b13": 8+12, "13": 9+12
     };
     const notesWithDegrees = (CHORDS_PATTERNS_ARRAY.find(([name]) => name === selectedPattern) || []).slice(1) as string[];
     const seenNotes = new Set<string>();
     return notesWithDegrees.map((degree) => {
       let semitone = degreeToSemitone[degree];
       if (semitone === undefined) return null;
-      let noteIdx = (rootIndex + semitone) % 12;
-      let note = ROOT_NOTES[noteIdx];
-      let octave = baseOctave;
-      // If degree is 9, b10, 11, 13 or their alterations, use next octave
-      if (["b9", "9", "#9", "b10", "11", "#11", "b13", "13"].includes(degree)) {
-        octave = nextOctave;
-      }
+      const total = rootIndex + semitone;
+      const noteIdx = total % 12;
+      const note = ROOT_NOTES[noteIdx];
+      const octave = 4 + Math.floor(total / 12);
       const noteWithOctave = note + octave;
       if (!seenNotes.has(noteWithOctave)) {
         seenNotes.add(noteWithOctave);
@@ -229,12 +251,9 @@ const ChordsPattern: React.FC<ChordsPatternProps> = ({
   // Add chord to scratch pad, including the sequence of notes (as frequencies)
   const handleAddToScratchPad = () => {
     if (!currentPattern || rootIndex === null) return;
-    const NOTE_FREQS: { [note: string]: number } = {
-      'C': 523.25, 'C#': 554.37, 'D': 587.33, 'D#': 622.25, 'E': 659.25, 'F': 698.46,
-      'F#': 739.99, 'G': 783.99, 'G#': 830.61, 'A': 880.00, 'A#': 932.33, 'B': 987.77,
-    };
     const notes = getPatternNotes();
-    const noteFrequencies = notes.map(n => NOTE_FREQS[n.slice(0, -1)] || 523.25);
+    // Compute exact frequencies from note-with-octave so Scratch Pad matches the Chords tab
+    const noteFrequencies = notes.map(n => getFrequency(n));
     // Extract keyboard view arrays to reproduce the exact mini keyboard in Scratch Pad
     let kv: any = null;
     try { kv = keyboardViewJson ? JSON.parse(keyboardViewJson) : null; } catch {}
@@ -244,6 +263,7 @@ const ChordsPattern: React.FC<ChordsPatternProps> = ({
       notes,
       noteFrequencies,
       timestamp: Date.now(),
+      playMode: 'chord' as const,
       // Pass through the exact keyboard view to render the same SVG in Scratch Pad
       keySequence: kv?.key_sequence || [],
       backwardPadding: kv?.backward_padding || [],
@@ -483,17 +503,36 @@ const ChordsPattern: React.FC<ChordsPatternProps> = ({
             }
           })()}
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 8 }}>
-          {/* Mini keyboard wrapper: reserve space equal to scaled size to prevent overlap */}
-          <div style={{ width: 750, height: 130, overflow: 'visible' }}>
-            <div style={{ transform: 'scale(2.5)', transformOrigin: 'left top', width: 300 }}>
-              <KeyboardViewSVG
-                backwardPadding={keyboardViewJson ? JSON.parse(keyboardViewJson).backward_padding : []}
-                keySequence={keyboardViewJson ? JSON.parse(keyboardViewJson).key_sequence : []}
-                forwardPadding={keyboardViewJson ? JSON.parse(keyboardViewJson).forward_padding : []}
-              />
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+          {frequencies.length > 0 && (
+            <div style={{
+              margin: '10px auto',
+              padding: '10px',
+              background: '#f5f5f5',
+              borderRadius: '5px',
+              maxWidth: '400px',
+              textAlign: 'center'
+            }}>
+              <h4>Current Chord Frequencies</h4>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr>
+                    <th>Note</th>
+                    <th>Frequency (Hz)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {frequencies.map((item, i) => (
+                    <tr key={i}>
+                      <td>{item.note}</td>
+                      <td>{item.freq}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          </div>
+          )}
+          
           {/* Controls row under the keyboard */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <button onClick={handleAddToScratchPad} title="Add chord to Scratch Pad" style={{ border: 'none', background: '#1976d2', color: 'white', borderRadius: '50%', width: 28, height: 28, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, cursor: 'pointer', boxShadow: '0 1px 4px #0002' }}>
