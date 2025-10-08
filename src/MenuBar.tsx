@@ -102,7 +102,7 @@ const MenuBar: React.FC<MenuBarProps> = ({ activeTab, setActiveTab }) => (
                 }}
                 onClick={() => setActiveTab("intervals")}
             >
-                Intervals
+                Intervals & Patterns
             </button>
 
         </div>

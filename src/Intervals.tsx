@@ -1,5 +1,6 @@
 import "./Intervals.css";
 import React, { useState } from "react";
+import { CHORDS_PATTERNS_ARRAY } from "./patterns/Chords";
 
 const intervalMatrix = [
   ["", "1", "♭2", "2", "♭3", "3", "4", "♭5", "5", "♭6", "6", "♭7", "7"],
@@ -131,6 +132,93 @@ const Intervals: React.FC = () => {
           </button>
         ))}
       </div>
+
+      {/* Chord patterns table */}
+      <h2 style={{ marginTop: 36 }}>Chord Patterns Reference</h2>
+      {(() => {
+        // 22-degree column headers (flats notation for consistency)
+        const DEG_COLUMNS = [
+          "1","b2","2","b3","3","4","b5","5","b6","6","b7","7","8","b9","9","10♭","10","11","12♭","12","13♭","13"
+        ];
+        // Map degree strings (as used in patterns) to 0..21 offsets
+        const degreeToOffset: Record<string, number> = {
+          "1": 0, "b2": 1, "2": 2, "#2": 3, "b3": 3, "3": 4, "4": 5, "#4": 6, "b5": 6, "5": 7, "#5": 8, "b6": 8, "6": 9, "bb7": 9, "b7": 10, "7": 11,
+          "8": 12, "b9": 13, "9": 14, "#9": 15, "b10": 15, "10": 16, "11": 17, "#11": 18, "b12": 18, "12": 19, "b13": 20, "13": 21
+        };
+        // Build grouped rows by header sections in CHORDS_PATTERNS_ARRAY
+        const groups: { label: string; rows: { name: string; type: string; degrees: string[] }[] }[] = [];
+        let currentGroup = "";
+        let bucket: { name: string; type: string; degrees: string[] }[] = [];
+        const flush = () => {
+          if (currentGroup && bucket.length) {
+            groups.push({ label: currentGroup, rows: bucket });
+            bucket = [];
+          }
+        };
+        for (const row of CHORDS_PATTERNS_ARRAY as any[]) {
+          if (!row || row.length === 0) continue;
+          const name = row[0];
+          if (typeof name === 'string' && name.startsWith('---') && name.endsWith('---')) {
+            flush();
+            currentGroup = name.slice(3, -3).trim();
+            continue;
+          }
+          bucket.push({ name, type: currentGroup, degrees: row.slice(1) });
+        }
+        flush();
+
+        // Render a separate table for each group
+        return (
+          <div>
+            {groups.map((g) => (
+              <div key={g.label} style={{ marginTop: 24 }}>
+                <h3 style={{ margin: '8px 0 8px 0' }}>{g.label} Chords Patterns Reference</h3>
+                <div style={{ overflowX: 'auto' }}>
+                  <table className="intervals-table" style={{ minWidth: 980 }}>
+                    <thead>
+                      <tr>
+                        <th>Chord name</th>
+                        <th>Type</th>
+                        {DEG_COLUMNS.map((deg, i) => (
+                          <th key={i}>{deg}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {g.rows.map((r, idx) => {
+                        // Build offset->label map using the actual labels from the chord
+                        const labelByOffset: Record<number, string> = {};
+                        for (const d of r.degrees) {
+                          const off = degreeToOffset[d];
+                          if (off !== undefined) labelByOffset[off] = d;
+                        }
+                        // Alternate background classes using the same palette as the intervals table
+                        const palette = ['unison', 'minor', 'major', 'perfect', 'diminished'];
+                        const rowClass = palette[idx % palette.length];
+                        return (
+                          <tr key={g.label + '-' + idx} className={rowClass}>
+                            <td style={{ fontWeight: 600 }}>{r.name}</td>
+                            <td style={{ color: '#555' }}>{r.type}</td>
+                            {DEG_COLUMNS.map((_, colIdx) => {
+                              const has = labelByOffset[colIdx] !== undefined;
+                              const label = has ? labelByOffset[colIdx] : DEG_COLUMNS[colIdx];
+                              return (
+                                <td key={colIdx} style={{ textAlign: 'center', color: has ? '#000' : '#bbb', fontWeight: has ? 700 as any : 400 }}>
+                                  {label}
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ))}
+          </div>
+        );
+      })()}
     </div>
   );
 };
