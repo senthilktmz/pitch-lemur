@@ -245,20 +245,42 @@ const ScratchPad: React.FC<ScratchPadProps> = ({ items, removeItem }) => {
               justifyContent: 'space-between', 
               alignItems: 'center',
               width: '100%',
-              padding: '0 8px',
-              boxSizing: 'border-box'
+              padding: '4px 8px',
+              boxSizing: 'border-box',
+              gap: 8
             }}>
+              {/* Left: badge for Chord/Scale */}
+              <span style={{
+                fontSize: 10,
+                fontWeight: 700,
+                color: item.playMode === 'scale' ? '#2e7d32' : '#1565c0',
+                background: item.playMode === 'scale' ? '#e8f5e9' : '#e3f2fd',
+                border: `1px solid ${item.playMode === 'scale' ? '#a5d6a7' : '#90caf9'}`,
+                borderRadius: 10,
+                padding: '2px 6px',
+                textTransform: 'uppercase',
+                letterSpacing: 0.3
+              }}>
+                {item.playMode === 'scale' ? 'Scale' : 'Chord'}
+              </span>
+              {/* Center: title with root key */}
               <div style={{ 
-                fontSize: 12, 
-                color: '#1976d2', 
-                fontWeight: 500, 
+                fontSize: 13, 
+                color: '#111', 
+                fontWeight: 600, 
                 textAlign: 'center', 
                 whiteSpace: 'nowrap', 
                 overflow: 'hidden', 
                 textOverflow: 'ellipsis',
                 flex: 1
               }}>
-                {item.type.split('/')[0].trim()}
+                {(() => {
+                  const typeName = (item.type || '').split('/')[0].trim();
+                  const root = item.root ? item.root : '';
+                  return item.playMode === 'scale'
+                    ? `${root ? root + ' - ' : ''}${typeName} Scale`
+                    : `${root ? root + ' ' : ''}${typeName}`;
+                })()}
               </div>
               <button
                 onClick={(e) => {
