@@ -92,7 +92,7 @@ const ScalesPattern: React.FC<ScalesPatternProps> = ({ zoom = 100, patterns, sca
   const KEYBOARD_LENGTH = MAIN_KEYBOARD_PATTERN.length;
 
   const [selectedPattern, setSelectedPattern] = useState<string>(CHORDS_PATTERNS[0].name);
-  const [rootIndex, setRootIndex] = useState<number | null>(null); // index in ROOT_NOTES
+  const [rootIndex, setRootIndex] = useState<number | null>(0); // index in ROOT_NOTES (default to C)
   const [sliderOffsetX, setSliderOffsetX] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -101,6 +101,20 @@ const ScalesPattern: React.FC<ScalesPatternProps> = ({ zoom = 100, patterns, sca
   const audioContextRef = useRef<AudioContext | null>(null);
   const oscillatorsRef = useRef<OscillatorNode[]>([]);
   const [lastPlayedTable, setLastPlayedTable] = useState<{ note: string; freq: number }[] | null>(null);
+  // Mini keyboard zoom (percent), persisted locally
+  const [miniZoom, setMiniZoom] = useState<number>(() => {
+    try {
+      const saved = localStorage.getItem('scales_mini_keyboard_zoom');
+      if (!saved) return 300;
+      const v = Number(saved);
+      return isFinite(v) ? Math.min(750, Math.max(50, v)) : 300;
+    } catch {
+      return 300;
+    }
+  });
+  useEffect(() => {
+    try { localStorage.setItem('scales_mini_keyboard_zoom', String(miniZoom)); } catch {}
+  }, [miniZoom]);
 
   const currentPattern = CHORDS_PATTERNS.find((p) => p.name === selectedPattern);
 
@@ -428,8 +442,8 @@ const ScalesPattern: React.FC<ScalesPatternProps> = ({ zoom = 100, patterns, sca
             </select>
           </div>
         </div>
-        {/* Root key, Notes, MiniKeyboard, and Play/Stop buttons on same line */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 32, marginBottom: 32, flexWrap: 'wrap' }}>
+        {/* Root key, Notes, and MiniKeyboard on one line (no Play/Stop here to avoid overlap) */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 32, marginBottom: 12, flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 8, minWidth: 160 }}>
             <div style={{ fontWeight: 'bold', fontSize: 18 }}>
               Root key: {rootIndex !== null ? ROOT_NOTES[rootIndex] : "Select a root key"}
@@ -449,18 +463,32 @@ const ScalesPattern: React.FC<ScalesPatternProps> = ({ zoom = 100, patterns, sca
             })()}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 8 }}>
+            {/* Mini keyboard zoom control */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginTop: 4 }}>
+              <label style={{ fontSize: 13, color: '#555' }}>Mini keyboard size:</label>
+              <input
+                type="range"
+                min={50}
+                max={750}
+                step={5}
+                value={miniZoom}
+                onChange={(e) => setMiniZoom(Number(e.target.value))}
+                style={{ width: 180 }}
+              />
+              <span style={{ fontSize: 12, color: '#666', width: 40, textAlign: 'left' }}>{Math.round(miniZoom)}%</span>
+            </div>
             {keyboardViewJson && (() => {
               try {
                 const kv = JSON.parse(keyboardViewJson);
+                const scale = Math.max(0.5, miniZoom / 100);
+                const nativeHeight = 45; // white key height used in KeyboardViewSVG
                 return (
-                  <div style={{ width: 750, height: 130, overflow: 'visible' }}>
-                    <div style={{ transform: 'scale(2.5)', transformOrigin: 'left top', width: 300 }}>
-                      <KeyboardViewSVG
-                        backwardPadding={kv.backward_padding}
-                        keySequence={kv.key_sequence}
-                        forwardPadding={kv.forward_padding}
-                      />
-                    </div>
+                  <div style={{ transform: `scale(${scale})`, transformOrigin: 'left top', height: nativeHeight * scale, marginBottom: 12, overflow: 'visible', pointerEvents: 'none', position: 'relative', zIndex: 1 }}>
+                    <KeyboardViewSVG
+                      backwardPadding={kv.backward_padding}
+                      keySequence={kv.key_sequence}
+                      forwardPadding={kv.forward_padding}
+                    />
                   </div>
                 );
               } catch {
@@ -489,14 +517,15 @@ const ScalesPattern: React.FC<ScalesPatternProps> = ({ zoom = 100, patterns, sca
               <span style={{ fontWeight: 'bold', fontSize: 18, lineHeight: 1 }}>+</span>
             </button>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginLeft: 16 }}>
-            <button onClick={playScale} disabled={isPlaying} style={{ marginBottom: 8, padding: '8px 24px', fontSize: 16, background: isPlaying ? '#bbb' : '#1976d2', color: '#fff', border: 'none', borderRadius: 4, cursor: isPlaying ? 'not-allowed' : 'pointer' }}>
-              ▶ Play
-            </button>
-            <button onClick={stopChord} disabled={!isPlaying} style={{ padding: '8px 24px', fontSize: 16, background: !isPlaying ? '#bbb' : '#d32f2f', color: '#fff', border: 'none', borderRadius: 4, cursor: !isPlaying ? 'not-allowed' : 'pointer' }}>
-              ■ Stop
-            </button>
-          </div>
+        </div>
+        {/* Dedicated row for Play/Stop to guarantee no overlap with the mini keyboard */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginBottom: 20 }}>
+          <button onClick={playScale} disabled={isPlaying} style={{ marginBottom: 0, padding: '8px 24px', fontSize: 16, background: isPlaying ? '#bbb' : '#1976d2', color: '#fff', border: 'none', borderRadius: 4, cursor: isPlaying ? 'not-allowed' : 'pointer' }}>
+            ▶ Play
+          </button>
+          <button onClick={stopChord} disabled={!isPlaying} style={{ padding: '8px 24px', fontSize: 16, background: !isPlaying ? '#bbb' : '#d32f2f', color: '#fff', border: 'none', borderRadius: 4, cursor: !isPlaying ? 'not-allowed' : 'pointer' }}>
+            ■ Stop
+          </button>
         </div>
         {/* Persistent table of last played notes and frequencies */}
         {(lastPlayedTable?.length ?? 0) > 0 && (
