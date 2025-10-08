@@ -443,7 +443,7 @@ const ScalesPattern: React.FC<ScalesPatternProps> = ({ zoom = 100, patterns, sca
           </div>
         </div>
         {/* Root key, Notes, and MiniKeyboard on one line (no Play/Stop here to avoid overlap) */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 32, marginBottom: 12, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-start', gap: 32, marginBottom: 12, flexWrap: 'wrap', width: '100%' }}>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 8, minWidth: 160 }}>
             <div style={{ fontWeight: 'bold', fontSize: 18 }}>
               Root key: {rootIndex !== null ? ROOT_NOTES[rootIndex] : "Select a root key"}
@@ -464,7 +464,7 @@ const ScalesPattern: React.FC<ScalesPatternProps> = ({ zoom = 100, patterns, sca
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 8 }}>
             {/* Mini keyboard zoom control */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginTop: 4 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: 10, marginTop: 4 }}>
               <label style={{ fontSize: 13, color: '#555' }}>Mini keyboard size:</label>
               <input
                 type="range"
