@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/pitch-lemur/static/css/main.274054fa.css",
+    "main.js": "/pitch-lemur/static/js/main.aeb754eb.js",
+    "static/js/453.4f53c3f6.chunk.js": "/pitch-lemur/static/js/453.4f53c3f6.chunk.js",
+    "index.html": "/pitch-lemur/index.html",
+    "main.274054fa.css.map": "/pitch-lemur/static/css/main.274054fa.css.map",
+    "main.aeb754eb.js.map": "/pitch-lemur/static/js/main.aeb754eb.js.map",
+    "453.4f53c3f6.chunk.js.map": "/pitch-lemur/static/js/453.4f53c3f6.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.274054fa.css",
+    "static/js/main.aeb754eb.js"
+  ]
+}
