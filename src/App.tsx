@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 // import logo from "./logo.svg"; // Remove unused default logo
 import "./App.css";
 import MenuBar from "./MenuBar";
+import About from "./About";
 import PianoKeyboard from "./PianoKeyboard";
 import IntervalPattern from "./IntervalPattern";
 import ScalesMulti from "./ScalesMulti";
@@ -65,6 +66,9 @@ function App() {
         </div>
         <div style={getTabStyle('scratchpad')}>
           <ScratchPad items={scratchPadItems} removeItem={removeScratchPadItem} />
+        </div>
+        <div style={getTabStyle('about')}>
+          <About />
         </div>
       </>
     );
