@@ -1,5 +1,7 @@
 import "./Intervals.css";
 import React, { useState } from "react";
+import IntervalPattern from "./IntervalPattern";
+import PianoKeyboard from "./PianoKeyboard";
 import { CHORDS_PATTERNS_ARRAY } from "./patterns/Chords";
 import { SCALES_PATTERNS_ARRAY } from "./patterns/Scales";
 
@@ -85,6 +87,40 @@ const Intervals: React.FC = () => {
   };
 
   const showAll = activeTypes.length === 0;
+
+  // Static slider configuration (no events): labels from 1 to 13 with flats/sharps combined
+  const KEY_WIDTH = 40;
+  const KEY_HEIGHT = 40;
+  const KEYBOARD_LENGTH = 36; // background width in PianoPattern is 36 keys
+  const staticIntervalLabels = [
+    "1",
+    "2b/1#",
+    "2",
+    "3b/2#",
+    "3",
+    "4",
+    "5b/4#",
+    "5",
+    "6b/5#",
+    "6",
+    "7b/6#",
+    "7",
+    "8",
+    "9b/8#",
+    "9",
+    "10b/9#",
+    "10",
+    "11",
+    "12b/11#",
+    "12",
+    "13b/12#",
+    "13",
+  ];
+  const staticSliderPattern = staticIntervalLabels.map((label) => ({
+    label,
+    color: "lightblue",
+    type: "scale_interval_member",
+  }));
 
   return (
     <div className="intervals-container">
@@ -182,6 +218,19 @@ const Intervals: React.FC = () => {
           </div>
         );
       })()}
+      {/* Static pattern slider + keyboard unit (same sizing as Chords tab) */}
+      <div style={{ height: 12 }} />
+      <IntervalPattern
+        pattern={staticSliderPattern}
+        keyWidth={KEY_WIDTH}
+        keyHeight={KEY_HEIGHT}
+        keyboardWidth={KEY_WIDTH * KEYBOARD_LENGTH}
+        totalKeys={KEYBOARD_LENGTH}
+        slidable={true}
+      />
+      <div style={{ marginTop: 8 }}>
+        <PianoKeyboard keyWidth={KEY_WIDTH} keyHeight={KEY_HEIGHT * 3} />
+      </div>
       </details>
 
       {/* Chord patterns table */}

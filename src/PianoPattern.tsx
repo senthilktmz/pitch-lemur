@@ -88,30 +88,39 @@ const PianoPattern: React.FC<PianoPatternProps> = ({
           <g key={`${rect.label ?? 'key'}-${idx}`}>
             <rect
               x={idx * keyWidth}
-              y={0}
               width={keyWidth}
               height={keyHeight}
               fill={rect.color}
               stroke="#000"
             />
-            {rect.label && (
-              <text
-                x={idx * keyWidth + keyWidth / 2}
-                y={keyHeight / 2 + 6}
-                textAnchor="middle"
-                fontSize={16}
-                fill={rect.fontColor || (rect.color === "black" ? "#fff" : "#222")}
-                fontWeight={rect.fontType === "bold" ? "bold" : "normal"}
-                style={{ userSelect: "none" }}
-              >
-                {rect.label}
-              </text>
-            )}
+            {rect.label && (() => {
+              const parts = String(rect.label).split('/');
+              const multi = parts.length > 1;
+              const fontSize = multi ? 12 : 16;
+              const fillColor = rect.fontColor || (rect.color === "black" ? "#fff" : "#222");
+              const x = idx * keyWidth + keyWidth / 2;
+              const baseY = multi ? (keyHeight / 2 - 6) : (keyHeight / 2 + 6);
+              return (
+                <text
+                  textAnchor="middle"
+                  fontSize={fontSize}
+                  fill={fillColor}
+                  fontWeight={rect.fontType === "bold" ? "bold" : "normal"}
+                  style={{ userSelect: "none" }}
+                >
+                  {parts.map((line, i) => (
+                    <tspan key={i} x={x} y={baseY + (multi ? i * 14 : 0)}>
+                      {line}
+                    </tspan>
+                  ))}
+                </text>
+              );
+            })()}
           </g>
         ))}
       </g>
     </svg>
   );
-};
+}
 
 export default PianoPattern;
