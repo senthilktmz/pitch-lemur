@@ -1,12 +1,33 @@
 import React from "react";
 
+const get_version_info = () => {
+    const version_number = "version 0.1";
+    const version_date = "2025 October 12";
+    return { version_number, version_date };
+}
+
 const About: React.FC = () => {
   return (
     <div style={{ padding: '24px 16px 56px', background: 'linear-gradient(180deg,#f8fbff,#ffffff)' }}>
       <div style={{ maxWidth: 1080, margin: '0 auto' }}>
         {/* Hero */}
         <div style={{ textAlign: 'center', marginBottom: 24 }}>
-          <h1 style={{ margin: '0 0 8px', fontSize: 36, lineHeight: 1.15 }}>Pitch Lemur</h1>
+          <h1 style={{ margin: '0 0 8px', fontSize: 36, lineHeight: 1.15 }}>
+            Pitch Lemur
+            <div style={{ fontSize: 14, color: '#000000', fontWeight: 'normal', marginTop: 4 }}>
+              {get_version_info().version_number} • {get_version_info().version_date}
+              <div style={{ marginTop: 8 }}>
+                <a 
+                  href="https://www.youtube.com/watch?v=PL8p3XroLRI" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  style={{ color: '#0066cc', textDecoration: 'none', fontWeight: 'bold' }}
+                >
+                  Tutorial video : https://www.youtube.com/watch?v=PL8p3XroLRI
+                </a>
+              </div>
+            </div>
+          </h1>
           <p style={{ margin: 0, fontSize: 18, color: '#5a6777' }}>
             Learn music theory the interactive way — visualize, hear, and master chords and scales.
           </p>
@@ -29,7 +50,7 @@ const About: React.FC = () => {
           <div style={{ display: 'flex', justifyContent: 'center' }}>
             <img
               src={process.env.PUBLIC_URL + "/pitch-lemur-texted-icon.png"}
-              alt="Pitch Lemur"
+              alt="Pitch Lemur version"
               style={{ width: '100%', height: 'auto', maxWidth: 540, borderRadius: 12, boxShadow: '0 2px 12px #0002' }}
             />
           </div>
